@@ -1,0 +1,20 @@
+pwa.serviceworker_file_data:
+  path: '/pwa/%/{version}'
+  defaults:
+    version: 1
+    _controller: '\Drupal\pwa\Controller\DefaultController::pwa_serviceworker_file_data'
+  requirements:
+    _permission: 'access pwa'
+pwa.offline_page:
+  path: /offline
+  defaults:
+    _controller: '\Drupal\pwa\Controller\DefaultController::pwa_offline_page'
+  requirements:
+    _permission: 'access pwa'
+pwa.admin:
+  path: /admin/config/system/pwa
+  defaults:
+    _title: 'Progressive Web App configuration'
+    _form: \Drupal\pwa\Form\AdminConfiguration
+  requirements:
+    _permission: 'administer pwa'

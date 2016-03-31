@@ -21,13 +21,13 @@ function pwa_deliver_js_file($page_callback_result) {
  * @return mixed
  */
 function pwa_serviceworker_file_data($version = 1) {
-  $data = cache_get('pwa:serviceworker', 'cache');
+  $data = \Drupal::cache('cache')->get('pwa:serviceworker');
   if ($data) {
     $data = $data->data;
   }
   else {
     $data = pwa_serviceworker_file();
-    cache_set('pwa:serviceworker', $data, 'cache');
+    \Drupal::cache('cache')->set('pwa:serviceworker', $data);
   }
 
   return $data;

@@ -4,21 +4,6 @@
  */
 
 /**
- * Implements hook_permission().
- */
-function pwa_permission() {
-  return [
-    'administer pwa' => [
-      'title' => t('Administer Progressive Web App configuration'),
-      'restrict access' => TRUE,
-    ],
-    'access pwa' => [
-      'title' => t('Access Progressive Web App'),
-    ],
-  ];
-}
-
-/**
  * Implements hook_menu().
  */
 function pwa_menu() {
@@ -81,27 +66,38 @@ function pwa_library() {
  */
 function pwa_manifest_file() {
   $path = drupal_get_path('module', 'pwa');
-  $manifest = [
-    'name' => variable_get('pwa_name', variable_get('site_name')),
-    'short_name' => variable_get('pwa_short_name', variable_get('site_name')),
-    'background_color' => variable_get('pwa_background_color', '#ffffff'),
-    'theme_color' => variable_get('pwa_theme_color', '#ffffff'),
-    'start_url' => variable_get('pwa_start_url', '/'),
-    'orientation' => variable_get('pwa_orientation', 'portrait'),
-    'display' => variable_get('pwa_display', 'standalone'),
-    // @todo make configurable.
-    'icons' => [
-      [
-        'src' => url($path . '/assets/druplicon-144.png'),
-        'sizes' => '144x144',
-        'type' => 'image/png',
-      ],
-      [
-        'src' => url($path . '/assets/druplicon-vector.svg'),
-        'type' => 'image/svg+xml',
-      ],
-    ],
-  ];
+  // @FIXME
+// url() expects a route name or an external URI.
+// // @FIXME
+// // Could not extract the default value because it is either indeterminate, or
+// // not scalar. You'll need to provide a default value in
+// // config/install/pwa.settings.yml and config/schema/pwa.schema.yml.
+// // @FIXME
+// // Could not extract the default value because it is either indeterminate, or
+// // not scalar. You'll need to provide a default value in
+// // config/install/pwa.settings.yml and config/schema/pwa.schema.yml.
+// $manifest = [
+//     'name' => \Drupal::config('pwa.settings')->get('pwa_name'),
+//     'short_name' => \Drupal::config('pwa.settings')->get('pwa_short_name'),
+//     'background_color' => \Drupal::config('pwa.settings')->get('pwa_background_color'),
+//     'theme_color' => \Drupal::config('pwa.settings')->get('pwa_theme_color'),
+//     'start_url' => \Drupal::config('pwa.settings')->get('pwa_start_url'),
+//     'orientation' => \Drupal::config('pwa.settings')->get('pwa_orientation'),
+//     'display' => \Drupal::config('pwa.settings')->get('pwa_display'),
+//     // @todo make configurable.
+//     'icons' => [
+//       [
+//         'src' => url($path . '/assets/druplicon-144.png'),
+//         'sizes' => '144x144',
+//         'type' => 'image/png',
+//       ],
+//       [
+//         'src' => url($path . '/assets/druplicon-vector.svg'),
+//         'type' => 'image/svg+xml',
+//       ],
+//     ],
+//   ];
+
   drupal_alter('pwa_manifest', $manifest);
   return drupal_json_encode($manifest);
 }
@@ -112,14 +108,15 @@ function pwa_manifest_file() {
  * @return string
  */
 function pwa_serviceworker_file() {
+  $settings = \Drupal::config('pwa.settings');
   $path = drupal_get_path('module', 'pwa');
   $sw = file_get_contents($path . '/js/serviceworker.js');
-  $cacheUrls = (array) preg_split("/\r\n|\n|\r/", trim(variable_get('pwa_swcache_urls', '')));
+  $cacheUrls = (array) preg_split("/\r\n|\n|\r/", trim($settings->get('pwa_swcache_urls')));
   $replace = [
-    '[/*cacheConditionsExclude*/]' => drupal_json_encode((array) preg_split("/\r\n|\n|\r/", trim(variable_get('pwa_swcache_exclude', '')))),
+    '[/*cacheConditionsExclude*/]' => drupal_json_encode((array) preg_split("/\r\n|\n|\r/", trim($settings->get('pwa_swcache_exclude')))),
     '[/*cacheUrls*/]' => drupal_json_encode($cacheUrls),
     '[/*cacheUrlsAssets*/]' => drupal_json_encode(_pwa_fetch_offline_page_ressources($cacheUrls)),
-    '1/*cacheVersion*/' => variable_get('pwa_swcache_version', 1),
+    '1/*cacheVersion*/' => $settings->get('pwa_swcache_version'),
     'offline-image.png' => '/' . drupal_get_path('module', 'pwa') . '/assets/offline-image.png',
   ];
   return str_replace(array_keys($replace), array_values($replace), $sw);
@@ -129,20 +126,20 @@ function pwa_serviceworker_file() {
  * Implements hook_page_alter().
  */
 function pwa_preprocess_html(&$variables) {
-  if (!user_access('access pwa')) {
+  if (!\Drupal::currentUser()->hasPermission('access pwa')) {
     return;
   }
-
+  $settings = \Drupal::config('pwa.settings');
   drupal_add_html_head([
     '#tag' => 'link',
     '#attributes' => [
       'rel' => 'manifest',
-      'href' => variable_get('pwa_filecache_manifest', ''),
+      'href' => $settings->get('pwa_filecache_manifest'),
     ],
   ], 'manifest');
 
   drupal_add_library('pwa', 'serviceworker');
-  drupal_add_js(['pwa' => ['path' => '/pwa/' . variable_get('pwa_swcache_version', 1) . '/serviceworker.js']], 'setting');
+  drupal_add_js(['pwa' => ['path' => '/pwa/' . $settings->get('pwa_swcache_version') . '/serviceworker.js']], 'setting');
 }
 
 /**
@@ -157,12 +154,12 @@ function pwa_flush_caches() {
   $manifest = pwa_manifest_file();
   $manifest_uri = file_unmanaged_save_data($manifest, $scheme . '://pwa/manifest.json', FILE_EXISTS_REPLACE);
   $manifest_url = file_create_url($manifest_uri);
-  variable_set('pwa_filecache_manifest', str_replace($GLOBALS['base_url'], '', $manifest_url));
+  \Drupal::configFactory()->getEditable('pwa.settings')->set('pwa_filecache_manifest', str_replace($GLOBALS['base_url'], '', $manifest_url))->save();
 
   // Create the serviceworker file in cache so it can be served from a menu
   // callback so additional headers can be sent with the file.
   // @see pwa_deliver_js_file().
-  cache_set('pwa:serviceworker', pwa_serviceworker_file(), 'cache');
+  \Drupal::cache('cache')->set('pwa:serviceworker', pwa_serviceworker_file());
 }
 
 /**
@@ -177,7 +174,10 @@ function _pwa_fetch_offline_page_ressources($pages) {
   $ressources = [];
 
   foreach ($pages as $page) {
-    $response = drupal_http_request(url($page, ['absolute' => TRUE]));
+    // @FIXME
+// url() expects a route name or an external URI.
+// $response = drupal_http_request(url($page, ['absolute' => TRUE]));
+
     if (explode('/', $response->headers['content-type'], 2)[0] === 'image') {
       break;
     }

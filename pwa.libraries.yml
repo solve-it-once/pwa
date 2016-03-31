@@ -1,0 +1,9 @@
+serviceworker:
+  version: VERSION
+  js:
+    /js/serviceworker-load.js: {scope: footer}
+  drupalSettings:
+    pwa:
+      path: /pwa/%/serviceworker.js
+  dependencies:
+    - core/drupalSettings

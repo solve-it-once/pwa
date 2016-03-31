@@ -1,0 +1,22 @@
+pwa.settings:
+  type: mapping
+  label: Settings
+  mapping:
+    pwa_start_url:
+      type: string
+    pwa_background_color:
+      type: string
+    pwa_theme_color:
+      type: string
+    pwa_orientation:
+      type: string
+    pwa_display:
+      type: string
+    pwa_swcache_version:
+      type: integer
+    pwa_swcache_urls:
+      type: string
+    pwa_swcache_exclude:
+      type: string
+    pwa_filecache_manifest:
+      type: string
