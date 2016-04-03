@@ -3,6 +3,8 @@
  * @file
  */
 
+use Drupal\user\RoleInterface;
+
 /**
  * Implements hook_requirements().
  */
@@ -14,7 +16,7 @@ function pwa_requirements($phase) {
   }
 
   $t = 't';
-  if ($_SERVER["REQUEST_SCHEME"] === 'https') {
+  if ($_SERVER['REQUEST_SCHEME'] === 'https') {
     $requirements['pwa'] = array(
       'title' => $t('Progressive Web App'),
       'value' => $t('HTTPS on'),
@@ -49,12 +51,8 @@ function pwa_install() {
   $directory = file_default_scheme() . '://pwa';
   file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
 
-  $settings = \Drupal::configFactory()->getEditable('pwa.settings');
-  $settings->set('pwa_swcache_exclude', implode("\n", ['admin/.*']))->save();
-  $settings->set('pwa_swcache_urls', implode("\n", ['/', '/offline', \Drupal::config('pwa.settings')->get('pwa_start_url')]))->save();
-  pwa_flush_caches();
+  pwa_rebuild();
 
-  // By default give permissions to anon users.
-  //user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, ['access pwa' => TRUE]);
-  //user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, ['access pwa' => TRUE]);
+  user_role_grant_permissions(RoleInterface::ANONYMOUS_ID, ['access pwa']);
+  user_role_grant_permissions(RoleInterface::AUTHENTICATED_ID, ['access pwa']);
 }

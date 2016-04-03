@@ -1,9 +1,11 @@
-pwa_start_url: /
-pwa_background_color: '#ffffff'
-pwa_theme_color: '#ffffff'
-pwa_orientation: portrait
-pwa_display: standalone
-pwa_swcache_version: 1
-pwa_swcache_urls: ''
-pwa_swcache_exclude: 'admin/.*'
-pwa_filecache_manifest: ''
+short_name: ''
+start_url: /
+background_color: '#ffffff'
+theme_color: '#ffffff'
+orientation: portrait
+display: standalone
+serviceworker_cache_version: 1
+serviceworker_preload:
+  - /
+  - /offline
+serviceworker_cache_exclude:

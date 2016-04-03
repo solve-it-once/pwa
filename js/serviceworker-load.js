@@ -32,4 +32,4 @@
 
    */
 
-}(Drupal.settings, navigator, window));
+}(drupalSettings, navigator, window));
