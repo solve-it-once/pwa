@@ -1,35 +1,23 @@
-(function (drupalSettings, navigator, window) {
+if ('serviceWorker' in navigator) {
 
-  'use strict';
-
-  if (!('serviceWorker' in navigator)) {
-    return;
-  }
-
-  navigator.serviceWorker.register(drupalSettings.pwa.path, {scope: '/'})
-    .then(function () { })
-    .catch(function (error) {
-      // Something went wrong.
-    });
+  navigator.serviceWorker.register('/serviceworker-pwa.js', { scope: '/' });
 
   // Reload page when user is back online on a fallback offline page.
   window.addEventListener('online', function () {
-    var loc = window.location;
-    // If the page serve is the offline fallback, try a refresh when user
+    const loc = window.location;
+    // If the page served is the offline fallback, try a refresh when user
     // get back online.
     if (loc.pathname !== '/offline' && document.querySelector('[data-drupal-pwa-offline]')) {
       loc.reload();
     }
   });
+}
+/*
+In case you want to unregister the SW during testing:
 
-  /*
-  In case you want to unregister the SW during testing:
+navigator.serviceWorker.getRegistration()
+  .then(function(registration) {
+    registration.unregister();
+  });
 
-  navigator.serviceWorker.getRegistration()
-    .then(function(registration) {
-      registration.unregister();
-    });
-
-   */
-
-}(drupalSettings, navigator, window));
+ */

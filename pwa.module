@@ -7,60 +7,16 @@ use \Drupal\Component\Serialization\Json;
 use \Drupal\Core\Url;
 
 /**
- * Generate the JSON of the manifest file.
- *
- * @return string
- */
-function pwa_manifest_file() {
-  $path = drupal_get_path('module', 'pwa');
-  $settings = \Drupal::config('pwa.settings');
-  $system_settings = \Drupal::config('system.site');
-  $uri_options = [
-    'absolute' => TRUE,
-    'https' => TRUE,
-  ];
-  $manifest = [
-    'name' => $system_settings->get('name'),
-    'short_name' => $settings->get('short_name'),
-    'background_color' => $settings->get('background_color'),
-    'theme_color' => $settings->get('theme_color'),
-    'start_url' => $settings->get('start_url'),
-    'orientation' => $settings->get('orientation'),
-    'display' => $settings->get('display'),
-    // @todo make configurable.
-    'icons' => [
-      [
-        'src' => Url::fromUri('base:/' . $path . '/assets/druplicon-144.png', $uri_options)->toString(),
-        'sizes' => '144x144',
-        'type' => 'image/png',
-      ],
-      [
-        'src' => Url::fromUri('base:/' . $path . '/assets/druplicon-vector.svg', $uri_options)->toString(),
-        'type' => 'image/svg+xml',
-      ],
-    ],
-  ];
-
-  \Drupal::moduleHandler()->alter('pwa_manifest', $manifest);
-  return Json::encode($manifest);
-}
-
-/**
  * Take the serviceworker template file and replace all the variables needed.
  *
  * @return string
  */
 function pwa_serviceworker_file() {
-  $settings = \Drupal::config('pwa.settings');
   $path = drupal_get_path('module', 'pwa');
   $sw = file_get_contents($path . '/js/serviceworker.js');
-  $exclude = $settings->get('serviceworker_cache_exclude');
-  $cacheUrls = $settings->get('serviceworker_preload');
+  $cacheUrls = ['/', '/offline'];
   $replace = [
-    '[/*cacheConditionsExclude*/]' => count($exclude) > 0 ? Json::encode($exclude) : '[]',
     '[/*cacheUrls*/]' => Json::encode($cacheUrls),
-    '[/*cacheUrlsAssets*/]' => Json::encode(_pwa_fetch_offline_page_ressources($cacheUrls)),
-    '1/*cacheVersion*/' => $settings->get('serviceworker_cache_version'),
     'offline-image.png' => '/' . $path . '/assets/offline-image.png',
   ];
   return str_replace(array_keys($replace), array_values($replace), $sw);
@@ -73,80 +29,15 @@ function pwa_page_attachments(array &$attachments) {
   if (!\Drupal::currentUser()->hasPermission('access pwa')) {
     return;
   }
-  $settings = \Drupal::config('pwa.settings');
-
   $attachments['#attached']['library'][] = 'pwa/serviceworker';
-  $attachments['#attached']['drupalSettings']['pwa']['path'] = '/pwa/' . $settings->get('serviceworker_cache_version') . '/serviceworker.js';
-  $attachments['#attached']['html_head'][] = [[
-    '#tag' => 'link',
-    '#attributes' => [
-      'rel' => 'manifest',
-      'href' => \Drupal::state()->get('pwa:filecache_manifest'),
-    ]
-  ], 'manifest'];
 }
 
 /**
  * Implements hook_rebuild().
  */
 function pwa_rebuild() {
-  $scheme = file_default_scheme();
-  $directory =  $scheme . '://pwa';
-  file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
-
-  // Create the manifest file, create a static file with all the data.
-  $manifest = pwa_manifest_file();
-  $manifest_uri = file_unmanaged_save_data($manifest, $scheme . '://pwa/manifest.json', FILE_EXISTS_REPLACE);
-  $manifest_url = file_create_url($manifest_uri);
-  \Drupal::state()->set('pwa:filecache_manifest', file_create_url($scheme . '://pwa/manifest.json'));
-
   // Create the serviceworker file in cache so it can be served from a menu
   // callback so additional headers can be sent with the file.
   // @see pwa_deliver_js_file().
   \Drupal::cache()->set('pwa:serviceworker', pwa_serviceworker_file());
-}
-
-/**
- * List all JS and CSS assets present in $pages so they can be cached.
- *
- * @param $pages
- *
- * @return array
- */
-function _pwa_fetch_offline_page_ressources($pages) {
-  $ressources = [];
-  $client = \Drupal::httpClient();
-  foreach ($pages as $page) {
-    try {
-      $response = $client->request('GET', Url::fromUserInput($page, ['absolute' => TRUE, /*'https' => TRUE*/])->toString());
-      if (explode('/', $response->getHeader('content-type')[0], 2)[0] === 'image') {
-        break;
-      }
-      $dom = new DOMDocument();
-      // Ignore warnings during HTML soup loading.
-      @$dom->loadHTML((string) $response->getBody());
-      $xpath = new DOMXPath($dom);
-
-      foreach ($xpath->query('//script[@src]') as $script) {
-        // @todo support responseive images
-        $ressources[] = $script->getAttribute('src');
-      }
-      foreach ($xpath->query('//link[@rel="stylesheet"]') as $stylesheet) {
-        $ressources[] = $stylesheet->getAttribute('href');
-      }
-      foreach ($xpath->query('//img[@src]') as $stylesheet) {
-        $ressources[] = $stylesheet->getAttribute('src');
-      }
-    }
-    catch (Exception $exception) {
-      // Do something.
-      watchdog_exception('pwa', $exception);
-    }
-  }
-
-  $dedup = array_unique($ressources);
-  foreach ($dedup as &$ressource) {
-    $ressource = file_url_transform_relative($ressource);
-  }
-  return $dedup;
 }

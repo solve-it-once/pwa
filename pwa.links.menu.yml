@@ -1,5 +1,0 @@
-pwa.admin:
-  route_name: pwa.admin
-  title: 'Progressive Web App configuration'
-  description: 'Configure manifest and service worker strategy.'
-  parent: system.admin_config_system

@@ -1,5 +1,2 @@
-'administer pwa':
-  title: 'Administer Progressive Web App configuration'
-  'restrict access': true
 'access pwa':
   title: 'Access Progressive Web App'
