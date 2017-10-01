@@ -30,6 +30,9 @@ function pwa_page_attachments(array &$attachments) {
     return;
   }
   $attachments['#attached']['library'][] = 'pwa/serviceworker';
+  $attachments['#attached']['drupalSettings']['pwa'] = [
+    'precache' => ['/', '/offline'],
+  ];
 }
 
 /**

@@ -1,13 +1,4 @@
-
-const CACHE_URLS = [/*cacheUrls*/];
-const CACHE_OFFLINE_IMAGE = 'offline-image.png';
-// @todo add all images from the manifest.
-CACHE_URLS.push(CACHE_OFFLINE_IMAGE);
-
-// Perform install steps
 self.addEventListener('install', function (event) {
-  caches.open('pwa')
-    .then((cache) => cache.addAll(CACHE_URLS));
   // Use the service woker ASAP.
   event.waitUntil(self.skipWaiting());
 });
@@ -15,7 +6,7 @@ self.addEventListener('install', function (event) {
 /**
  *  use network with cache fallback.
  */
-self.addEventListener('fetch', function (event) {
+self.addEventListener('fetch', (event) => {
   /**
    * @param {Response} response
    *
@@ -49,7 +40,13 @@ self.addEventListener('fetch', function (event) {
         }
         return response;
       })
-      .catch((error) => caches.match('/offline'));
+      .catch((error) => {
+        // if not found in cache, return default offline content
+        // only if this is a navigation request.
+        if (request.mode === 'navigate') {
+          caches.match('/offline')
+        }
+      });
   }
 
   const url = new URL(event.request.url);
@@ -59,9 +56,6 @@ self.addEventListener('fetch', function (event) {
   // Make sure the url is one we don't exclude from cache.
   if (isMethodGet && includedProtocol) {
     event.respondWith(networkWithCacheFallback(event.request));
-  }
-  else {
-    console.log('Excluded URL: ', event.request.url);
   }
 });
 
