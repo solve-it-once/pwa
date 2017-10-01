@@ -49,5 +49,5 @@ function pwa_requirements($phase) {
  */
 function pwa_install() {
   user_role_grant_permissions(RoleInterface::ANONYMOUS_ID, ['access pwa']);
-  user_role_grant_permissions(RoleInterface::AUTHENTICATED_ID, ['access pwa']);
+  //user_role_grant_permissions(RoleInterface::AUTHENTICATED_ID, ['access pwa']);
 }
