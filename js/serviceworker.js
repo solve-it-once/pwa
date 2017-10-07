@@ -1,7 +1,6 @@
-self.addEventListener('install', function (event) {
-  // Use the service woker ASAP.
-  event.waitUntil(self.skipWaiting());
-});
+// Use the serviceworker ASAP.
+self.addEventListener('install', (event) => event.waitUntil(self.skipWaiting()));
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
 /**
  *  use network with cache fallback.
@@ -13,48 +12,44 @@ self.addEventListener('fetch', (event) => {
    * @return {Promise}
    */
   function cacheNetworkResponse(response) {
-    // Don't cache redirects or errors.
-    if (response.ok) {
-      if (response.headers.get('Content-length') > 3 * 1024 * 1024) {
-        console.log('Response not cacheable, too big: ', response)
-      }
+    // Don't cache redirects, errors or response bigger than 3MB.
+    if (response.ok && response.headers.get('Content-length') < 3 * 1024 * 1024) {
       // Copy now and not in the then() because by that time it's too late,
       // the request has already been used and can't be touched again.
+      const copy = response.clone();
       caches
         .open('pwa')
-        .then((cache) => cache.put(event.request, response));
+        .then((cache) => cache.put(event.request, copy));
     }
-    else {
-      console.log("Response not cacheable: ", response);
-    }
-    return response.clone();
+    return response;
   }
 
   function networkWithCacheFallback (request) {
+
+    function cacheFallback(error) {
+      return caches
+        .match(request)
+        .then((response) => {
+          // if not found in cache, return default offline content
+          // only if this is a navigation request.
+          if (!response) {
+            if (request.mode === 'navigate') {
+              return caches.match('/offline');
+            }
+            // Return an error for missing assets.
+            return new Response('', {status: 523, statusText: 'Origin Is Unreachable'});
+          }
+          return response;
+        });
+    }
+
     return fetch(request)
       .then(cacheNetworkResponse)
-      .catch((error) => {
-        const response = caches.match(request);
-        if (!response) {
-          return Promise.reject(new Error('Ressource not in cache'));
-        }
-        return response;
-      })
-      .catch((error) => {
-        // if not found in cache, return default offline content
-        // only if this is a navigation request.
-        if (request.mode === 'navigate') {
-          caches.match('/offline')
-        }
-      });
+      .catch(cacheFallback);
   }
 
-  const url = new URL(event.request.url);
-  const isMethodGet = event.request.method === 'GET';
-  const includedProtocol = ['http:', 'https:'].indexOf(url.protocol) !== -1;
-
   // Make sure the url is one we don't exclude from cache.
-  if (isMethodGet && includedProtocol) {
+  if (event.request.method === 'GET') {
     event.respondWith(networkWithCacheFallback(event.request));
   }
 });
