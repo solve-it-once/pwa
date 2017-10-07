@@ -1,7 +1,4 @@
-<?php /**
- * @file
- * Contains \Drupal\pwa\Controller\DefaultController.
- */
+<?php
 
 namespace Drupal\pwa\Controller;
 
