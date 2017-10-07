@@ -30,7 +30,7 @@ class PWAController extends ControllerBase {
       '#tag' => 'h1',
       '#value' => 'You are offline.',
       '#attributes' => [
-        'data-drupal-pwa-offline' => TRUE
+        'data-drupal-pwa-offline' => TRUE,
       ],
     ];
   }
