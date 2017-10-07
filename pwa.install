@@ -17,28 +17,28 @@ function pwa_requirements($phase) {
 
   $t = 't';
   if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER["REQUEST_SCHEME"]) && $_SERVER["REQUEST_SCHEME"] === 'https')) {
-    $requirements['pwa'] = array(
+    $requirements['pwa'] = [
       'title' => $t('Progressive Web App'),
       'value' => $t('HTTPS on'),
       'severity' => REQUIREMENT_OK,
       'description' => $t('Please make sure the certificate of %domain is valid for offline functionality to work.', ['%domain' => $_SERVER['HTTP_HOST']]),
-    );
+    ];
   }
   elseif (in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1'])) {
-    $requirements['pwa'] = array(
+    $requirements['pwa'] = [
       'title' => $t('Progressive Web App'),
       'value' => 'localhost',
       'severity' => REQUIREMENT_WARNING,
       'description' => $t('You will need to configure HTTPS on your domain for this module to work.'),
-    );
+    ];
   }
   else {
-    $requirements['pwa'] = array(
+    $requirements['pwa'] = [
       'title' => $t('Progressive Web App'),
       'value' => $t('HTTPS off'),
       'severity' => REQUIREMENT_ERROR,
       'description' => $t('HTTPS need to be configured for the progressive web app module to work.'),
-    );
+    ];
   }
 
   return $requirements;
