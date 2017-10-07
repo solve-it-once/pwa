@@ -3,25 +3,6 @@
  * @file
  */
 
-use \Drupal\Component\Serialization\Json;
-use \Drupal\Core\Url;
-
-/**
- * Take the serviceworker template file and replace all the variables needed.
- *
- * @return string
- */
-function pwa_serviceworker_file() {
-  $path = drupal_get_path('module', 'pwa');
-  $sw = file_get_contents($path . '/js/serviceworker.js');
-  $cacheUrls = ['/', '/offline'];
-  $replace = [
-    '[/*cacheUrls*/]' => Json::encode($cacheUrls),
-    'offline-image.png' => '/' . $path . '/assets/offline-image.png',
-  ];
-  return str_replace(array_keys($replace), array_values($replace), $sw);
-}
-
 /**
  * Implements hook_page_attachments().
  */
@@ -33,14 +14,4 @@ function pwa_page_attachments(array &$attachments) {
   $attachments['#attached']['drupalSettings']['pwa'] = [
     'precache' => ['/', '/offline'],
   ];
-}
-
-/**
- * Implements hook_rebuild().
- */
-function pwa_rebuild() {
-  // Create the serviceworker file in cache so it can be served from a menu
-  // callback so additional headers can be sent with the file.
-  // @see pwa_deliver_js_file().
-  \Drupal::cache()->set('pwa:serviceworker', pwa_serviceworker_file());
 }

@@ -1,12 +1,12 @@
 pwa.serviceworker_file_data:
   path: /serviceworker-pwa.js
   defaults:
-    _controller: '\Drupal\pwa\Controller\DefaultController::pwa_serviceworker_file_data'
+    _controller: '\Drupal\pwa\Controller\PWAController::pwa_serviceworker_file_data'
   requirements:
     _permission: 'access pwa'
 pwa.offline_page:
   path: /offline
   defaults:
-    _controller: '\Drupal\pwa\Controller\DefaultController::pwa_offline_page'
+    _controller: '\Drupal\pwa\Controller\PWAController::pwa_offline_page'
   requirements:
     _permission: 'access content'
