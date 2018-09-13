@@ -23,12 +23,7 @@ class PWAController extends ControllerBase {
 
   public function pwa_offline_page() {
     return [
-      '#type' => 'html_tag',
-      '#tag' => 'h1',
-      '#value' => 'You are offline.',
-      '#attributes' => [
-        'data-drupal-pwa-offline' => TRUE,
-      ],
+      '#theme' => 'offline',
     ];
   }
 
