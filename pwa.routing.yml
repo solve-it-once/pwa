@@ -1,7 +1,8 @@
 pwa.serviceworker_file_data:
-  path: /serviceworker-pwa.js
+  path: /serviceworker-pwa
   defaults:
     _controller: '\Drupal\pwa\Controller\PWAController::pwa_serviceworker_file_data'
+    _disable_route_normalizer: 'TRUE'
   requirements:
     _permission: 'access pwa'
 pwa.offline_page:
