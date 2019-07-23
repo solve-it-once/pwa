@@ -1,6 +1,8 @@
 <?php
+
 /**
  * @file
+ * PWA hooks.
  */
 
 /**
@@ -11,9 +13,26 @@ function pwa_page_attachments(array &$attachments) {
     return;
   }
   $attachments['#attached']['library'][] = 'pwa/serviceworker';
-  $attachments['#attached']['drupalSettings']['pwa'] = [
-    'precache' => ['/', '/offline'],
+
+  $config = \Drupal::config('pwa.config');
+
+  $manifest_link = [
+    '#tag' => 'link',
+    '#attributes' => [
+      'rel' => 'manifest',
+      'href' => '/manifest.json',
+    ],
   ];
+  $attachments['#attached']['html_head'][] = [$manifest_link, 'manifest'];
+
+  $theme_color = [
+    '#tag' => 'meta',
+    '#attributes' => [
+      'name' => 'theme-color',
+      'content' => $config->get('theme_color'),
+    ],
+  ];
+  $attachments['#attached']['html_head'][] = [$theme_color, 'theme_color'];
 }
 
 /**
@@ -25,4 +44,13 @@ function pwa_theme() {
       'variables' => [],
     ],
   ];
+}
+
+/**
+ * Check data from input.
+ */
+function pwa_str_to_list($string) {
+  $list = explode("\n", $string);
+  $list = array_map('trim', $list);
+  return array_filter($list, 'strlen');
 }
