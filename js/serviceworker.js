@@ -217,7 +217,7 @@ function isCacheableAsset(assetUrl) {
  * @return {boolean}
  */
 function isAssetUrl(assetUrl) {
-  return /\.(js|css|jpe?g|png|gif|svg|webp|eot|woff2?|ttf|otf)\??/.test(assetUrl.href);
+  return /\.(js|css|jpe?g|png|gif|svg|webp|eot|woff2?|ttf|otf)\??/i.test(assetUrl.href);
 }
 
 /**
@@ -228,7 +228,7 @@ function isAssetUrl(assetUrl) {
  * @return {boolean}
  */
 function isImageUrl(imageUrl) {
-  return /\.(jpe?g|png|gif|svg|webp)\??/.test(imageUrl.href);
+  return /\.(jpe?g|png|gif|svg|webp)\??/i.test(imageUrl.href);
 }
 
 /**
@@ -356,10 +356,7 @@ self.addEventListener('fetch', function (event) {
         .catch(function (error) {
           return fetchResourceFromNetwork(error)
             .then(cacheNetworkResponse)
-			/*
-			* Commenting this because offline image can get cached in place of regular image.
-			*/
-            //.catch(catchOfflineImage); 
+            .catch(catchOfflineImage);
         })
         .catch(logError);
     },
