@@ -31,7 +31,7 @@ const CACHE_URLS_ASSETS = [/*cacheUrlsAssets*/];
 const CACHE_OFFLINE = '/offline';
 
 // When an image hasn't been cached, we use this fallback image instead.
-const CACHE_OFFLINE_IMAGE = '/modules/contrib/pwa/assets/offline-image.png';
+const CACHE_OFFLINE_IMAGE = '[/*modulePath*/]/assets/offline-image.png';
 
 // Add critical offline URLs to the required asset list.
 CACHE_URLS.push(CACHE_OFFLINE_IMAGE);
