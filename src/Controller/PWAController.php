@@ -157,7 +157,7 @@ class PWAController implements ContainerInjectionInterface {
     $replace = [
       '[/*cacheUrls*/]' => Json::encode($cacheWhitelist),
       '[/*exclude_cache_url*/]' => Json::encode($exclude_cache_url),
-      '[/*modulePath*/]' => $base_url .'/'. drupal_get_path('module', 'pwa'),
+      '[/*modulePath*/]' => '/'. drupal_get_path('module', 'pwa'),
       '1/*cacheVersion*/' => '\'' . $pwa_module_version . '-v' . (\Drupal::config('pwa.config')->get('cache_version') ?: 1) . '\'',
     ];
     if (!empty($cacheUrls)) {
