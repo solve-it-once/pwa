@@ -29,4 +29,4 @@ pwa.config:
     _form: '\Drupal\pwa\Form\ConfigurationForm'
     _title: 'Progressive Web Application'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer pwa'
