@@ -58,6 +58,24 @@ class ConfigurationForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $host = $this->getRequest()->server->get('HTTP_HOST');
+    $files_path = file_create_url("public://pwa") . '/';
+    if (substr($files_path, 0, 7) == 'http://') {
+      $files_path = str_replace('http://', '', $files_path);
+    }
+    elseif (substr($files_path, 0, 8) == 'https://') {
+      $files_path = str_replace('https://', '', $files_path);
+    }
+    if (substr($files_path, 0, 4) == 'www.') {
+      $files_path = str_replace('www.', '', $files_path);
+    }
+    $host = $this->getRequest()->server->get('HTTP_HOST');
+    if (substr($files_path, 0, strlen($host)) == $host) {
+      $files_path = str_replace($host, '', $files_path);
+    }
+    $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme());
+    $realpath = \Drupal::service('file_system')->realpath(file_default_scheme() . "://");
+
     $config = $this->config('pwa.config');
 
     $form['manifest'] = [
@@ -355,25 +373,11 @@ class ConfigurationForm extends ConfigFormBase {
       $file_usage->add($file, 'PWA', 'PWA', $this->currentUser()->id());
 
       // Save new image.
-      $files_path = file_create_url("public://pwa") . '/';
-
-      if (substr($files_path, 0, 7) == 'http://') {
-        $files_path = str_replace('http://', '', $files_path);
-      }
-      elseif (substr($files_path, 0, 8) == 'https://') {
-        $files_path = str_replace('https://', '', $files_path);
-      }
-      if (substr($files_path, 0, 4) == 'www.') {
-        $files_path = str_replace('www.', '', $files_path);
-      }
-      $host = $this->getRequest()->server->get('HTTP_HOST');
-      if (substr($files_path, 0, strlen($host)) == $host) {
-        $files_path = str_replace($host, '', $files_path);
-      }
-
+      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme());
+      $files_path = '/' . $wrapper->basePath() . '/pwa/';
       $file_uri = $files_path . $file->getFilename();
-      $file_path = \Drupal::service('file_system')
-          ->realpath(file_default_scheme() . "://") . '/pwa/' . $file->getFilename();
+
+      $file_path = $wrapper->realpath() . '/pwa/' . $file->getFilename();
 
       $config->set('image', $file_uri)->save();
 
@@ -390,12 +394,11 @@ class ConfigurationForm extends ConfigFormBase {
       imagesavealpha($dst, TRUE);
 
       imagecopyresampled($dst, $src, 0, 0, 0, 0, $newSize, $newSize, $oldSize, $oldSize);
-      $path_to_copy = \Drupal::service('file_system')
-          ->realpath(file_default_scheme() . "://") . '/pwa/' . $file->getFilename() . 'copy.png';
+      $path_to_copy = $file_path . 'copy.png';
       $stream = fopen($path_to_copy, 'w+');
       if ($stream == TRUE) {
         imagepng($dst, $stream);
-        $config->set('image_small', $files_path . $file->getFilename() . 'copy.png')
+        $config->set('image_small', $file_uri . 'copy.png')
           ->save();
       }
 
@@ -412,11 +415,10 @@ class ConfigurationForm extends ConfigFormBase {
       imagesavealpha($dst, TRUE);
 
       imagecopyresampled($dst, $src, 0, 0, 0, 0, $newSize, $newSize, $oldSize, $oldSize);
-      $path_to_copy = \Drupal::service('file_system')
-          ->realpath(file_default_scheme() . "://") . '/pwa/' . $file->getFilename() . 'copy2.png';
+      $path_to_copy = $file_path . 'copy2.png';
       if ($stream = fopen($path_to_copy, 'w+')) {
         imagepng($dst, $stream);
-        $config->set('image_very_small', $files_path . $file->getFilename() . 'copy2.png')
+        $config->set('image_very_small', $file_uri . 'copy2.png')
           ->save();
       }
     }
