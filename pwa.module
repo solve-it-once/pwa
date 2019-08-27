@@ -12,6 +12,7 @@ function pwa_page_attachments(array &$attachments) {
   $attachments['#attached']['library'][] = 'pwa/serviceworker';
 
   $config = \Drupal::config('pwa.config');
+  $cross_origin = $config->get('cross_origin');
 
   $manifest_link = [
     '#tag' => 'link',
@@ -20,6 +21,12 @@ function pwa_page_attachments(array &$attachments) {
       'href' => '/manifest.json',
     ],
   ];
+
+  // Pass credentials if the site is behind HTTP auth.
+  if ($cross_origin) {
+    $manifest_link['#attributes']['crossorigin'] = 'use-credentials';
+  }
+
   $attachments['#attached']['html_head'][] = [$manifest_link, 'manifest'];
 
   $theme_color = [
