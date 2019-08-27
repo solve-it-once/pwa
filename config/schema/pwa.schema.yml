@@ -38,4 +38,7 @@ pwa.config:
     cache_version:
       type: text
       label: 'Cache version'
-
+    cross_origin:
+      type: boolean
+      label: 'The site is behind HTTP basic authentication'
+      translatable: false

@@ -163,6 +163,14 @@ class ConfigurationForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
+    $form['manifest']['cross_origin'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('The site is behind HTTP basic authentication'),
+      '#description' => $this->t('This will ensure any login credentials are passed to the manifest.'),
+      '#title_display' => 'after',
+      '#default_value' => $config->get('cross_origin'),
+    ];
+
     $validators = [
       'file_validate_extensions' => ['png'],
       'file_validate_image_resolution' => ['512x512', '512x512'],
@@ -360,6 +368,7 @@ class ConfigurationForm extends ConfigFormBase {
       ->set('urls_to_cache', $form_state->getValue('urls_to_cache'))
       ->set('urls_to_exclude', $form_state->getValue('urls_to_exclude'))
       ->set('cache_version', $form_state->getValue('cache_version'))
+      ->set('cross_origin', $form_state->getValue('cross_origin'))
       ->save();
 
     // Save image if exists
