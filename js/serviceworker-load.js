@@ -1,4 +1,4 @@
-(function ($, Drupal, drupalSettings, navigator, window) {
+(function (Drupal, drupalSettings, navigator, window) {
   'use strict';
 
   if ('serviceWorker' in navigator) {
@@ -13,4 +13,4 @@
     });
   }
 
-})(jQuery, Drupal, drupalSettings, navigator, window);
+})(Drupal, drupalSettings, navigator, window);
