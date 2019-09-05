@@ -1,3 +1,10 @@
+pwa.admin_index:
+  path: '/admin/config/pwa'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Progressive web app'
+  requirements:
+    _permission: 'access administration pages'
 pwa.manifest:
   path: /manifest.json
   defaults:
@@ -24,7 +31,7 @@ pwa.module_active:
   requirements:
     _permission: 'access content'
 pwa.config:
-  path: '/admin/config/system/pwa'
+  path: '/admin/config/pwa/settings'
   defaults:
     _form: '\Drupal\pwa\Form\ConfigurationForm'
     _title: 'Progressive Web Application'
