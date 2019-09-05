@@ -11,7 +11,11 @@ use Drupal\Core\Url;
  * Manifest JSON building service.
  */
 class Manifest implements ManifestInterface {
-
+  /**
+   * Set the url for manifest file.
+   *
+   * @var Drupal\pwa
+   */
   private $manifestUri = '';
 
   /**
@@ -45,43 +49,43 @@ class Manifest implements ManifestInterface {
     // Get values.
     $values = $this->getCleanValues();
 
-    if(isset($values['site_name'])) {
+    if (isset($values['site_name'])) {
       $manifest_data['name'] = $values['site_name'];
     }
-    if(isset($values['short_name'])) {
+    if (isset($values['short_name'])) {
       $manifest_data['short_name'] = $values['short_name'];
     }
-    if(isset($values['display'])) {
+    if (isset($values['display'])) {
       $manifest_data['display'] = $values['display'];
     }
-    if(isset($values['background_color'])) {
+    if (isset($values['background_color'])) {
       $manifest_data['background_color'] = $values['background_color'];
     }
-    if(isset($values['theme_color'])) {
+    if (isset($values['theme_color'])) {
       $manifest_data['theme_color'] = $values['theme_color'];
     }
-    if(isset($values['description'])) {
+    if (isset($values['description'])) {
       $manifest_data['description'] = $values['description'];
     }
-    if(isset($values['lang'])) {
+    if (isset($values['lang'])) {
       $manifest_data['lang'] = $values['lang'];
     }
-    if(isset($values['image'])) {
+    if (isset($values['image'])) {
       $manifest_data['icons'][0]['src'] = $values['image'];
       $manifest_data['icons'][0]['sizes'] = '512x512';
       $manifest_data['icons'][0]['type'] = 'image/png';
     }
-    if(isset($values['image_small'])) {
+    if (isset($values['image_small'])) {
       $manifest_data['icons'][1]['src'] = $values['image_small'];
       $manifest_data['icons'][1]['sizes'] = '192x192';
       $manifest_data['icons'][1]['type'] = 'image/png';
     }
-    if(isset($values['image_very_small'])) {
+    if (isset($values['image_very_small'])) {
       $manifest_data['icons'][2]['src'] = $values['image_very_small'];
       $manifest_data['icons'][2]['sizes'] = '144x144';
       $manifest_data['icons'][2]['type'] = 'image/png';
     }
-    if(isset($values['start_url'])) {
+    if (isset($values['start_url'])) {
       $manifest_data['start_url'] = $values['start_url'];
     }
     $manifest_data['scope'] = '/';
@@ -119,7 +123,7 @@ class Manifest implements ManifestInterface {
     $language = $this->languageManager->getLanguage($lang);
     $this->languageManager->setConfigOverrideLanguage($language);
 
-    // Set defaults
+    // Set defaults.
     $site_name = \Drupal::config('system.site')->get('name');
     $base_path = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
     $path = $base_path . drupal_get_path('module', 'pwa');
@@ -137,7 +141,9 @@ class Manifest implements ManifestInterface {
     $config = $this->configFactory->getEditable('pwa.config');
     $input = $config->get();
     foreach ($input as $key => $value) {
-      if ($value !== '') $output[$key] = $value;
+      if ($value !== '') {
+        $output[$key] = $value;
+      }
     }
 
     // Image from theme.
