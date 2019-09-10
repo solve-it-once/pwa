@@ -68,8 +68,15 @@ class PWAController implements ContainerInjectionInterface {
     ]);
   }
 
-  // Fetch all resources.
-
+  /**
+   * Fetch all resources.
+   *
+   * @param array $pages
+   *   The page URL.
+   *
+   * @return array
+   *   Returns an array of the CSS and JS file URLs.
+   */
   public function _pwa_fetch_offline_page_resources($pages) {
 
     // For each Drupal path, request the HTML response and parse any CSS/JS found
@@ -121,7 +128,6 @@ class PWAController implements ContainerInjectionInterface {
 
     $dedupe = array_unique($resources);
     $dedupe = array_values($dedupe);
-
     return $dedupe;
   }
 
@@ -138,7 +144,7 @@ class PWAController implements ContainerInjectionInterface {
 	
     $sw = file_get_contents($path . '/js/serviceworker.js');
 
-    // Get urls from config
+    // Get URLs from config.
     $cacheUrls = pwa_str_to_list(\Drupal::config('pwa.config')->get('urls_to_cache'));
     $exclude_cache_url = pwa_str_to_list(\Drupal::config('pwa.config')->get('urls_to_exclude'));
 
@@ -146,7 +152,7 @@ class PWAController implements ContainerInjectionInterface {
     $manifest = Json::decode($this->manifest->getOutput());
     $cacheIcons = [];
     if (!empty($manifest['icons'])) {
-      foreach($manifest['icons'] as $icon) {
+      foreach ($manifest['icons'] as $icon) {
         $cacheIcons[] = $icon['src'];
       }
     }
@@ -168,7 +174,7 @@ class PWAController implements ContainerInjectionInterface {
     $replace = [
       '[/*cacheUrls*/]' => Json::encode($cacheWhitelist),
       '[/*exclude_cache_url*/]' => Json::encode($exclude_cache_url),
-      '[/*modulePath*/]' => '/'. drupal_get_path('module', 'pwa'),
+      '[/*modulePath*/]' => '/' . drupal_get_path('module', 'pwa'),
       '1/*cacheVersion*/' => '\'' . $pwa_module_version . '-v' . (\Drupal::config('pwa.config')->get('cache_version') ?: 1) . '\'',
     ];
     if (!empty($cacheUrls)) {
@@ -195,8 +201,10 @@ class PWAController implements ContainerInjectionInterface {
   }
   
   /**
-   * Phone home uninstall
-   * Applied from patch https://www.drupal.org/project/pwa/issues/2913023#comment-12819311 
+   * Phone home uninstall.
+   *
+   * @package Applied from patch
+   * https://www.drupal.org/project/pwa/issues/2913023#comment-12819311.
    */
     public function pwa_module_active_page() {
       return [
@@ -208,12 +216,12 @@ class PWAController implements ContainerInjectionInterface {
       ];
     }
 
-/**
- * Provide a render array for offline pages.
- *
- * @return array
- *   The render array.
- */
+  /**
+   * Provide a render array for offline pages.
+   *
+   * @return array
+   *   The render array.
+   */
   public function pwa_offline_page() {
     return [
       '#theme' => 'offline',
