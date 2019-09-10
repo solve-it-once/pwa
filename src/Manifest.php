@@ -113,8 +113,7 @@ class Manifest implements ManifestInterface {
     // Set defaults.
     $lang = $this->languageManager->getDefaultLanguage();
     $site_name = $this->configFactory->get('system.site')->get('name');
-    $base_path = Url::fromRoute('<front>', [], ['absolute' => TRUE, 'language' => $lang])->toString();
-    $path = $base_path . drupal_get_path('module', 'pwa');
+    $path = \Drupal::request()->getSchemeAndHttpHost() . '/' . drupal_get_path('module', 'pwa');
     $output = [
       'site_name' => $site_name,
       'short_name' => $site_name,

@@ -11,6 +11,9 @@ use Drupal\Core\State\StateInterface;
 use Drupal\pwa\ManifestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Drupal\Core\Cache\CacheableResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
 
@@ -79,8 +82,10 @@ class PWAController implements ContainerInjectionInterface {
     foreach ($pages as $page) {
       try {
         // URL is validated as internal in ConfigurationForm.php.
-        $url = Url::fromUserInput($page, ['absolute' => TRUE])->toString();
-        $response = \Drupal::httpClient()->get($url, array('headers' => array('Accept' => 'text/plain')));
+        $url = Url::fromUserInput($page, ['absolute' => TRUE])->toString(TRUE);
+        $url_string = $url->getGeneratedUrl();
+        $response = \Drupal::httpClient()->get($url_string, array('headers' => array('Accept' => 'text/plain')));
+
         $data = $response->getBody();
         if (empty($data)) {
           continue;
@@ -116,13 +121,19 @@ class PWAController implements ContainerInjectionInterface {
 
     $dedupe = array_unique($resources);
     $dedupe = array_values($dedupe);
+
     return $dedupe;
   }
 
   /**
    * Replace the serviceworker file with variables from Drupal config.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request object.
+   *
+   * @return mixed
    */
-  public function pwa_serviceworker_file_data() {
+  public function pwa_serviceworker_file_data(Request $request) {
     $path = drupal_get_path('module', 'pwa');
 	
     $sw = file_get_contents($path . '/js/serviceworker.js');
@@ -167,12 +178,21 @@ class PWAController implements ContainerInjectionInterface {
     // Fill placeholders and return final file.
     $data = str_replace(array_keys($replace), array_values($replace), $sw);
 
-    return new Response($data, 200, [
+    $build = [];
+    $build['#cache'] = [
+      'max-age' => 86400,
+      'contexts' => [
+        'url',
+      ],
+    ];
+    $response = new CacheableResponse($data, 200, [
       'Content-Type' => 'application/javascript',
       'Service-Worker-Allowed' => '/',
     ]);
+    $response->addCacheableDependency(CacheableMetadata::createFromRenderArray($build));
+
+    return $response;
   }
-  
   
   /**
    * Phone home uninstall

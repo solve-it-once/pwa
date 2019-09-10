@@ -220,7 +220,7 @@ class ConfigurationForm extends ConfigFormBase {
     $form['service_worker']['urls_to_cache'] = [
       '#type' => 'textarea',
       '#title' => $this->t('URLs to cache on install'),
-      '#description' => $this->t('These will serve the page offline even if they have not been visited, try to limit the ammount of URLs here so the user is not downloading too much on their first visit. Make sure the URL is not a 404. Make sure are these are relative URLs tokens not supported.'),
+      '#description' => $this->t('These will serve the page offline even if they have not been visited. Make sure the URL is not a 404. Make sure are these are relative URLs, tokens or regex are not supported. Because we cache these, you may need to flush your cache when changing this value.'),
       '#default_value' => $config->get('urls_to_cache'),
       '#rows' => 7
     ];
