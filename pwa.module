@@ -5,6 +5,8 @@
  * PWA hooks.
  */
 
+use Drupal\Core\Url;
+
 /**
  * Implements hook_page_attachments().
  */
@@ -18,7 +20,7 @@ function pwa_page_attachments(array &$attachments) {
     '#tag' => 'link',
     '#attributes' => [
       'rel' => 'manifest',
-      'href' => '/manifest.json',
+      'href' => Url::fromRoute('pwa.manifest')->toString(),
     ],
   ];
 

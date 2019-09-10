@@ -50,6 +50,19 @@ function pwa_requirements($phase) {
  */
 function pwa_install() {
   user_role_grant_permissions(RoleInterface::ANONYMOUS_ID, ['access pwa']);
+
+  // Set the site name dynamically.
+  $site_name = \Drupal::config('system.site')->get('name');
+  $output = [
+    'site_name' => $site_name,
+    'short_name' => substr($site_name, 0, 25),
+  ];
+
+  $config = \Drupal::configFactory()->getEditable('pwa.config');
+  foreach ($output as $key => $value) {
+    $config->set($key, $value);
+  }
+  $config->save();
 }
 
 /**

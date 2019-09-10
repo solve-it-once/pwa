@@ -11,12 +11,6 @@ use Drupal\Core\Url;
  * Manifest JSON building service.
  */
 class Manifest implements ManifestInterface {
-  /**
-   * Set the url for manifest file.
-   *
-   * @var Drupal\pwa
-   */
-  private $manifestUri = '';
 
   /**
    * The configuration manager.
@@ -38,8 +32,6 @@ class Manifest implements ManifestInterface {
   public function __construct(ConfigFactoryInterface $config_factory, LanguageManagerInterface $language_manager) {
     $this->configFactory = $config_factory;
     $this->languageManager = $language_manager;
-
-    $this->manifestUri = '/manifest.json';
   }
 
   /**
@@ -118,14 +110,10 @@ class Manifest implements ManifestInterface {
    *   Values from the configuration.
    */
   private function getCleanValues() {
-    // Change configuration language.
-    $lang = $this->languageManager->getCurrentLanguage()->getId();
-    $language = $this->languageManager->getLanguage($lang);
-    $this->languageManager->setConfigOverrideLanguage($language);
-
     // Set defaults.
-    $site_name = \Drupal::config('system.site')->get('name');
-    $base_path = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString();
+    $lang = $this->languageManager->getDefaultLanguage();
+    $site_name = $this->configFactory->get('system.site')->get('name');
+    $base_path = Url::fromRoute('<front>', [], ['absolute' => TRUE, 'language' => $lang])->toString();
     $path = $base_path . drupal_get_path('module', 'pwa');
     $output = [
       'site_name' => $site_name,
@@ -138,9 +126,9 @@ class Manifest implements ManifestInterface {
       'image_very_small' => $path . '/assets/druplicon-144.png',
     ];
 
-    $config = $this->configFactory->getEditable('pwa.config');
-    $input = $config->get();
-    foreach ($input as $key => $value) {
+    $config = $this->configFactory->get('pwa.config');
+    $config_data = $config->get();
+    foreach ($config_data as $key => $value) {
       if ($value !== '') {
         $output[$key] = $value;
       }
@@ -153,12 +141,6 @@ class Manifest implements ManifestInterface {
       $output['image_small'] = $image;
       $output['image_very_small'] = $image;
     }
-
-    // Save config with changes.
-    foreach ($output as $key => $value) {
-      $config->set($key, $value);
-    }
-    $config->save();
 
     return $output;
   }
