@@ -388,14 +388,12 @@ self.addEventListener('fetch', function (event) {
         event.respondWith(makeRequest.staleWhileRevalidateImage(event.request));
       }
     }
-
-    // Other resources: network with cache fallback.
-    else {
-      event.respondWith(makeRequest.networkWithCacheFallback(event.request));
-    }
   }
   else {
-    console.debug('PWA: Excluded URL', event.request.url);
+    if (isMethodGet && includedProtocol) {
+      event.respondWith(makeRequest.networkWithCacheFallback(event.request));
+    }
+    // console.debug('PWA: Excluded URL', event.request.url);
   }
 });
 
