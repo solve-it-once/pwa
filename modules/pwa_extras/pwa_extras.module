@@ -55,8 +55,10 @@ function pwa_extras_tag_list($status_color) {
 }
 
 function pwa_extras_apple_touch_icons() {
+  $config = \Drupal::config('pwa.config');
+
   return [
-    'touch-icon-default' => '<link rel="apple-touch-icon" sizes="192x192" href="/img/icons/app-icon-192.png">',
+    'touch-icon-default' => '<link rel="apple-touch-icon" sizes="192x192" href="' . $config->get('image_small') . '">',
   ];
 }
 
