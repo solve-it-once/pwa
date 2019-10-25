@@ -61,11 +61,21 @@ class PWAController implements ContainerInjectionInterface {
 
   /**
    * Fetch the manifest content.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The HTTP request.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   The manifest file as a response object.
    */
-  public function pwa_manifest() {
-    return new Response($this->manifest->getOutput(), 200, [
+  public function pwa_manifest(Request $request) {
+    $response = new Response($this->manifest->getOutput(), 200, [
       'Content-Type' => 'application/json',
     ]);
+    $response->setEtag(hash('sha256', $response->getContent()))
+      ->setPublic()
+      ->isNotModified($request);
+    return $response;
   }
 
   /**
