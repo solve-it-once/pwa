@@ -7,8 +7,8 @@
 
 // If at any point you want to force pages that use this service worker to start
 // using a fresh cache, then increment the CACHE_VERSION value in the Drupal UI.
-// It will kick off the Service Worker update flow and the old cache(s) will be
-// purged as part of the activate event handler when the updated Service Worker
+// It will kick off the service worker update flow and the old cache(s) will be
+// purged as part of the activate event handler when the updated service worker
 // is activated.
 //
 // When Drupal replaces `cacheVersion` during server-side processing, it includes
@@ -37,7 +37,7 @@ const CACHE_OFFLINE_IMAGE = '[/*modulePath*/]/assets/offline-image.png';
 CACHE_URLS.push(CACHE_OFFLINE_IMAGE);
 CACHE_URLS.push(CACHE_OFFLINE);
 
-// Cache prefix
+// Cache prefix.
 const CACHE_PREFIX = 'pwa-main-';
 
 // Full cache name: Cache prefix + cache version.
@@ -52,13 +52,13 @@ let CACHE_ACTIVE = true;
 const PWA_PHONE_HOME_URL = '/pwa/module-active';
 
 // Phone-home should only happen once per life of the SW. This is initialized to
-// FALSE and will be set to TRUE during phone-home. When the Service Worker goes
+// FALSE and will be set to TRUE during phone-home. When the service worker goes
 // idle it will reset the variable and the next time it activates, it will once
 // again phone-home.
  let PWA_PHONE_HOME_ALREADY = false;
 
 /**
- * Install the Service Worker.
+ * Install the service worker.
  *
  * This event runs only once for the entire life of the active SW. It will run
  * again once the value of CACHE_CURRENT changes, OR when the contents of this
@@ -98,11 +98,11 @@ self.addEventListener('install', function (event) {
 
 /**
  * Once the Service Worker is installed, this event is fired to allow for
- * cleanup of the old caches and to prime the Service Worker for use.
+ * cleanup of the old caches and to prime the service worker for use.
  */
 self.addEventListener('activate', function (event) {
   // The `activate` event happens in one of two situations:
-  // 1) The Service Worker successfully installed and the visitor finished their
+  // 1) The service worker successfully installed and the visitor finished their
   //    previous session, allowing this current SW to claim control, OR...
   // 2) TODO: during the `install` event, we execute the `self.skipWaiting()`
   //    command to immediately pass control to the new SW as soon as it finishes
@@ -112,7 +112,7 @@ self.addEventListener('activate', function (event) {
   //
   // The tasks we perform are:
   //
-  // 1) Activate new Service Worker and take control of the client(s).
+  // 1) Activate new service worker and take control of the client(s).
   // 2) Delete all caches that are not CACHE_CURRENT.
   var tasks = [
     self.clients.claim(),
@@ -193,7 +193,7 @@ function logError(error) {
  */
 function isCacheableAsset(assetUrl) {
 
-  // Url is not an asset, don't cache.
+  // URL is not an asset, don't cache.
   if (!isAssetUrl(assetUrl)) {
     return false;
   }
@@ -298,7 +298,7 @@ self.addEventListener('fetch', function (event) {
             })
             .catch(logError);
         } else {
-          console.debug('PWA: The Service Worker has been uninstalled so cache.put() was skipped.');
+          console.debug('PWA: The service worker has been uninstalled so cache.put() was skipped.');
         }
       }
 
@@ -319,7 +319,7 @@ self.addEventListener('fetch', function (event) {
                   })
                   .catch(logError);
               } else {
-                console.debug('PWA: The Service Worker has been uninstalled so cache.put() was skipped.');
+                console.debug('PWA: The service worker has been uninstalled so cache.put() was skipped.');
               }
             }
           })
@@ -380,7 +380,7 @@ self.addEventListener('fetch', function (event) {
       event.respondWith(makeRequest.staleWhileRevalidate(event.request));
     }
     else if (!isCacheableAsset(url)) {
-      //this networkWithCacheFallback dont work with excluded path.
+      // This networkWithCacheFallback does not work with excluded paths.
       event.respondWith(makeRequest.networkWithCacheFallback(event.request));
     }
 
@@ -397,7 +397,7 @@ self.addEventListener('fetch', function (event) {
   }
   else {
     if (isMethodGet && includedProtocol && !notExcludedPath) {
-      //this networkWithCacheFallback work only with excluded path.
+      // This networkWithCacheFallback works only with excluded paths.
       event.respondWith(makeRequest.networkWithCacheFallback(event.request));
     }
     console.debug('PWA: Excluded URL', event.request.url);
@@ -432,12 +432,12 @@ function phoneHome() {
       console.debug('PWA: Phone-home - Network not detected.');
     }
 
-    // if network + 200, do nothing
+    // If network + 200, do nothing.
     if (response.status === 200) {
       console.debug('PWA: Phone-home - Network detected, module detected.');
     }
 
-    // if network + 404, uninstall
+    // If network + 404, uninstall.
     if (response.status === 404) {
       console.debug('PWA: Phone-home - Network detected, module NOT detected. UNINSTALLING.');
 
@@ -453,7 +453,7 @@ function phoneHome() {
 };
 
 /**
- * Uninstall Service Worker
+ * Uninstall service worker.
  */
 function pwaUninstallServiceWorker() {
   return self.registration.unregister()
@@ -472,11 +472,11 @@ function pwaUninstallServiceWorker() {
         // Disallow any future cache.put() coming from fetch listeners.
         CACHE_ACTIVE = false;
 
-        console.debug('PWA: Phone-home - Service Worker has unregistered itself and destroyed old caches since the PWA Drupal module could not be detected.');
+        console.debug('PWA: Phone-home - Service worker has unregistered itself and destroyed old caches since the PWA Drupal module could not be detected.');
       });
     }
     else {
-      console.error('PWA: Phone-home - Service Worker could not unregister itself. It might be necessary to manually delete this Service Worker using browser devtools.');
+      console.error('PWA: Phone-home - Service worker could not unregister itself. It might be necessary to manually delete this service worker using browser devtools.');
     }
   })
   .catch(function(error) {
