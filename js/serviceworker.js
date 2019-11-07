@@ -280,53 +280,55 @@ self.addEventListener('fetch', function (event) {
    * @return {Promise}
    */
   function cacheNetworkResponse(response) {
-    // Don't cache redirects or errors.
-    if (response.ok) {
-      // Copy now and not in the then() because by that time it's too late,
-      // the request has already been used and can't be touched again.
-      var copy = response.clone();
 
-      if (CACHE_ACTIVE) {
-        caches
-          .open(CACHE_CURRENT)
-          .then(function (cache) {
-            return cache.put(event.request, copy);
-          })
-          .catch(logError);
-      }
-      else {
-        console.debug('PWA: The Service Worker has been uninstalled so cache.put() was skipped.');
-      }
-    }
+    var notExcludedPath = CACHE_EXCLUDE.every(urlNotExcluded(url.href));
 
-    // If response.ok was false, try one more time with `no-cors` header which
-    // will allow valid third-party requests to be cached.
-    else {
-      fetch(event.request, { mode: 'no-cors' })
-      .then(function (response) {
-        // Don't cache redirects or errors.
-        if (response.ok) {
-          var copy = response.clone();
+    if (notExcludedPath) {
+      // Don't cache redirects or errors.
+      if (response.ok) {
+        // Copy now and not in the then() because by that time it's too late,
+        // the request has already been used and can't be touched again.
+        var copy = response.clone();
 
-          if (CACHE_ACTIVE) {
-            caches
-              .open(CACHE_CURRENT)
-              .then(function (cache) {
-                return cache.put(event.request, copy);
-              })
-              .catch(logError);
-          }
-          else {
-            console.debug('PWA: The Service Worker has been uninstalled so cache.put() was skipped.');
-          }
+        if (CACHE_ACTIVE) {
+          caches
+            .open(CACHE_CURRENT)
+            .then(function (cache) {
+              return cache.put(event.request, copy);
+            })
+            .catch(logError);
+        } else {
+          console.debug('PWA: The Service Worker has been uninstalled so cache.put() was skipped.');
         }
-      })
-      .catch(function (error) {
-        logError(error);
-        console.error("PWA: Response not cacheable ", response);
-      });
-    }
+      }
 
+      // If response.ok was false, try one more time with `no-cors` header which
+      // will allow valid third-party requests to be cached.
+      else {
+        fetch(event.request, {mode: 'no-cors'})
+          .then(function (response) {
+            // Don't cache redirects or errors.
+            if (response.ok) {
+              var copy = response.clone();
+
+              if (CACHE_ACTIVE) {
+                caches
+                  .open(CACHE_CURRENT)
+                  .then(function (cache) {
+                    return cache.put(event.request, copy);
+                  })
+                  .catch(logError);
+              } else {
+                console.debug('PWA: The Service Worker has been uninstalled so cache.put() was skipped.');
+              }
+            }
+          })
+          .catch(function (error) {
+            logError(error);
+            console.error("PWA: Response not cacheable ", response);
+          });
+      }
+    }
     return response;
   }
 
@@ -377,6 +379,10 @@ self.addEventListener('fetch', function (event) {
     if (isCacheableAsset(url)) {
       event.respondWith(makeRequest.staleWhileRevalidate(event.request));
     }
+    else if (!isCacheableAsset(url)) {
+      //this networkWithCacheFallback dont work with excluded path.
+      event.respondWith(makeRequest.networkWithCacheFallback(event.request));
+    }
 
     // Check for save-data Header and avoid caching when present.
     else if (isImageUrl(url)) {
@@ -390,10 +396,11 @@ self.addEventListener('fetch', function (event) {
     }
   }
   else {
-    if (isMethodGet && includedProtocol) {
+    if (isMethodGet && includedProtocol && !notExcludedPath) {
+      //this networkWithCacheFallback work only with excluded path.
       event.respondWith(makeRequest.networkWithCacheFallback(event.request));
     }
-    // console.debug('PWA: Excluded URL', event.request.url);
+    console.debug('PWA: Excluded URL', event.request.url);
   }
 });
 
