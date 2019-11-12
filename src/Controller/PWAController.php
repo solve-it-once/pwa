@@ -69,12 +69,11 @@ class PWAController implements ContainerInjectionInterface {
    *   The manifest file as a response object.
    */
   public function pwa_manifest(Request $request) {
-    $response = new Response($this->manifest->getOutput(), 200, [
+    $response = new CacheableResponse($this->manifest->getOutput(), 200, [
       'Content-Type' => 'application/json',
     ]);
-    $response->setEtag(hash('sha256', $response->getContent()))
-      ->setPublic()
-      ->isNotModified($request);
+    $meta_data = $response->getCacheableMetadata();
+    $meta_data->addCacheTags(['manifestjson']);
     return $response;
   }
 
@@ -151,7 +150,7 @@ class PWAController implements ContainerInjectionInterface {
    */
   public function pwa_serviceworker_file_data(Request $request) {
     $path = drupal_get_path('module', 'pwa');
-	
+
     $sw = file_get_contents($path . '/js/serviceworker.js');
 
     // Get URLs from config.
@@ -209,7 +208,7 @@ class PWAController implements ContainerInjectionInterface {
 
     return $response;
   }
-  
+
   /**
    * Phone home uninstall.
    *

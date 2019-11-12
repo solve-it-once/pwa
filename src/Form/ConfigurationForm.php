@@ -2,6 +2,7 @@
 
 namespace Drupal\pwa\Form;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -103,7 +104,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#maxlength' => 25,
       '#size' => 30,
     ];
-	
+
     $form['manifest']['lang'] = [
       "#type" => 'textfield',
       "#title" => $this->t('Lang'),
@@ -122,7 +123,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#maxlength' => 255,
       '#size' => 60,
     ];
-  
+
     $form['manifest']['start_url'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Start URL'),
@@ -431,6 +432,7 @@ class ConfigurationForm extends ConfigFormBase {
           ->save();
       }
     }
+    Cache::invalidateTags(['manifestjson']);
 
     parent::submitForm($form, $form_state);
   }

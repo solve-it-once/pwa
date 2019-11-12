@@ -10,4 +10,4 @@ default_image: '0'
 urls_to_cache: '/offline'
 urls_to_exclude: "admin/.*\r\nuser/.*"
 cache_version: '1'
-cross_origin: '0'
+cross_origin: false
