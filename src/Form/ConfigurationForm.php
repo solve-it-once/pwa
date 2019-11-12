@@ -242,6 +242,14 @@ class ConfigurationForm extends ConfigFormBase {
       '#default_value' => $config->get('cache_version') ?: 1,
     ];
 
+    $form['service_worker']['skip_waiting'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Skip waiting'),
+      '#description' => $this->t("If enabled, an updated service worker will not wait, but instead activates as soon as it's finished installing"),
+      '#title_display' => 'after',
+      '#default_value' => $config->get('skip_waiting'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -370,6 +378,7 @@ class ConfigurationForm extends ConfigFormBase {
       ->set('urls_to_exclude', $form_state->getValue('urls_to_exclude'))
       ->set('cache_version', $form_state->getValue('cache_version'))
       ->set('cross_origin', $form_state->getValue('cross_origin'))
+      ->set('skip_waiting', $form_state->getValue('skip_waiting'))
       ->save();
 
     // Save image if exists

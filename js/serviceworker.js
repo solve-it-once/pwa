@@ -55,7 +55,11 @@ const PWA_PHONE_HOME_URL = '/pwa/module-active';
 // FALSE and will be set to TRUE during phone-home. When the service worker goes
 // idle it will reset the variable and the next time it activates, it will once
 // again phone-home.
- let PWA_PHONE_HOME_ALREADY = false;
+let PWA_PHONE_HOME_ALREADY = false;
+
+// If enabled, an updated service worker will not wait, but instead activates as
+// soon as it's finished installing.
+const SELF_SKIPWAITING = false/*pwaSkipWaiting*/;
 
 /**
  * Install the service worker.
@@ -65,6 +69,9 @@ const PWA_PHONE_HOME_URL = '/pwa/module-active';
  * file change in any way.
  */
 self.addEventListener('install', function (event) {
+  if (SELF_SKIPWAITING) {
+    self.skipWaiting();
+  }
   // Install assets for minimum viable website (MVW).
   if (CACHE_URLS.length) {
     event.waitUntil(caches
@@ -104,11 +111,9 @@ self.addEventListener('activate', function (event) {
   // The `activate` event happens in one of two situations:
   // 1) The service worker successfully installed and the visitor finished their
   //    previous session, allowing this current SW to claim control, OR...
-  // 2) TODO: during the `install` event, we execute the `self.skipWaiting()`
+  // 2) When during the `install` event, we execute the `self.skipWaiting()`
   //    command to immediately pass control to the new SW as soon as it finishes
-  //    installing. This is not yet implemented in the PWA Drupal module.
-  //
-  // @see https://www.drupal.org/project/pwa/issues/2986689
+  //    installing.
   //
   // The tasks we perform are:
   //

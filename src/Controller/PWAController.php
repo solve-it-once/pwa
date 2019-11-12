@@ -179,12 +179,16 @@ class PWAController implements ContainerInjectionInterface {
       $pwa_module_version = '8.x-1.x-dev';
     }
 
+    // Get the skip-waiting setting.
+    $skip_waiting = \Drupal::config('pwa.config')->get('skip_waiting') ? 'true' : 'false';
+
     // Set up placeholders.
     $replace = [
       '[/*cacheUrls*/]' => Json::encode($cacheWhitelist),
       '[/*exclude_cache_url*/]' => Json::encode($exclude_cache_url),
       '[/*modulePath*/]' => '/' . drupal_get_path('module', 'pwa'),
       '1/*cacheVersion*/' => '\'' . $pwa_module_version . '-v' . (\Drupal::config('pwa.config')->get('cache_version') ?: 1) . '\'',
+      'false/*pwaSkipWaiting*/' => $skip_waiting,
     ];
     if (!empty($cacheUrls)) {
       $replace['[/*cacheUrlsAssets*/]'] = Json::encode($this->_pwa_fetch_offline_page_resources($cacheUrls));
