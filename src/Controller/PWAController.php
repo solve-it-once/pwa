@@ -157,6 +157,16 @@ class PWAController implements ContainerInjectionInterface {
     $cacheUrls = pwa_str_to_list(\Drupal::config('pwa.config')->get('urls_to_cache'));
     $exclude_cache_url = pwa_str_to_list(\Drupal::config('pwa.config')->get('urls_to_exclude'));
 
+    // Allow other modules to alter the URL's. We also pass a CacheableMetadata
+    // object so these modules can add cacheability metadata to the response.
+    $cacheable_metadata = new CacheableMetadata;
+    $cacheable_metadata
+      ->setCacheMaxAge(86400)
+      ->setCacheContexts(['url']);
+    // Invoke alter hooks.
+    \Drupal::moduleHandler()->alter('pwa_cache_urls', $cacheUrls, $cacheable_metadata);
+    \Drupal::moduleHandler()->alter('pwa_exclude_urls', $exclude_cache_url, $cacheable_metadata);
+
     // Get icons list and convert into array of sources.
     $manifest = Json::decode($this->manifest->getOutput());
     $cacheIcons = [];
@@ -197,18 +207,11 @@ class PWAController implements ContainerInjectionInterface {
     // Fill placeholders and return final file.
     $data = str_replace(array_keys($replace), array_values($replace), $sw);
 
-    $build = [];
-    $build['#cache'] = [
-      'max-age' => 86400,
-      'contexts' => [
-        'url',
-      ],
-    ];
     $response = new CacheableResponse($data, 200, [
       'Content-Type' => 'application/javascript',
       'Service-Worker-Allowed' => '/',
     ]);
-    $response->addCacheableDependency(CacheableMetadata::createFromRenderArray($build));
+    $response->addCacheableDependency($cacheable_metadata);
 
     return $response;
   }
