@@ -153,17 +153,23 @@ class PWAController implements ContainerInjectionInterface {
 
     $sw = file_get_contents($path . '/js/serviceworker.js');
 
-    // Get URLs from config.
-    $cacheUrls = pwa_str_to_list(\Drupal::config('pwa.config')->get('urls_to_cache'));
-    $exclude_cache_url = pwa_str_to_list(\Drupal::config('pwa.config')->get('urls_to_exclude'));
+    // Get module configuration.
+    $config = \Drupal::config('pwa.config');
 
-    // Allow other modules to alter the URL's. We also pass a CacheableMetadata
-    // object so these modules can add cacheability metadata to the response.
+    // Get URLs from config.
+    $cacheUrls = pwa_str_to_list($config->get('urls_to_cache'));
+    $cacheUrls[] = $config->get('offline_page');
+    $exclude_cache_url = pwa_str_to_list($config->get('urls_to_exclude'));
+
+    // Initialize a CacheableMetadata object.
     $cacheable_metadata = new CacheableMetadata;
+    $cacheable_metadata->addCacheableDependency($config);
     $cacheable_metadata
       ->setCacheMaxAge(86400)
       ->setCacheContexts(['url']);
-    // Invoke alter hooks.
+
+    // Allow other modules to alter the URL's. Also pass the CacheableMetadata
+    // object so these modules can add cacheability metadata to the response.
     \Drupal::moduleHandler()->alter('pwa_cache_urls', $cacheUrls, $cacheable_metadata);
     \Drupal::moduleHandler()->alter('pwa_exclude_urls', $exclude_cache_url, $cacheable_metadata);
 
@@ -190,14 +196,15 @@ class PWAController implements ContainerInjectionInterface {
     }
 
     // Get the skip-waiting setting.
-    $skip_waiting = \Drupal::config('pwa.config')->get('skip_waiting') ? 'true' : 'false';
+    $skip_waiting = $config->get('skip_waiting') ? 'true' : 'false';
 
     // Set up placeholders.
     $replace = [
       '[/*cacheUrls*/]' => Json::encode($cacheWhitelist),
       '[/*exclude_cache_url*/]' => Json::encode($exclude_cache_url),
+      "'/offline'/*offlinePage*/" => "'" . $config->get('offline_page') . "'",
       '[/*modulePath*/]' => '/' . drupal_get_path('module', 'pwa'),
-      '1/*cacheVersion*/' => '\'' . $pwa_module_version . '-v' . (\Drupal::config('pwa.config')->get('cache_version') ?: 1) . '\'',
+      '1/*cacheVersion*/' => '\'' . $pwa_module_version . '-v' . ($config->get('cache_version') ?: 1) . '\'',
       'false/*pwaSkipWaiting*/' => $skip_waiting,
     ];
     if (!empty($cacheUrls)) {

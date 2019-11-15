@@ -28,14 +28,14 @@ const CACHE_URLS_ASSETS = [/*cacheUrlsAssets*/];
 
 // When no connection is available, show this URL instead of the content that
 // should be available at the URL. This URL is never shown in the browser.
-const CACHE_OFFLINE = '/offline';
+const CACHE_OFFLINE = '/offline'/*offlinePage*/;
 
 // When an image hasn't been cached, we use this fallback image instead.
 const CACHE_OFFLINE_IMAGE = '[/*modulePath*/]/assets/offline-image.png';
 
-// Add critical offline URLs to the required asset list.
+// Add critical offline URLs to the required asset list. (The offline page is
+// already part of CACHE_URLS.)
 CACHE_URLS.push(CACHE_OFFLINE_IMAGE);
-CACHE_URLS.push(CACHE_OFFLINE);
 
 // Cache prefix.
 const CACHE_PREFIX = 'pwa-main-';

@@ -234,6 +234,14 @@ class ConfigurationForm extends ConfigFormBase {
       '#rows' => 7
     ];
 
+    $form['service_worker']['offline_page'] = [
+      '#type' => 'textfield',
+      '#title' => t('Offline page'),
+      '#default_value' => $config->get('offline_page') ?: '/offline',
+      '#size' => 40,
+      '#description' => t('This page is displayed when the user is offline and the requested page is not cached. It is automatically added to the "URLs to cache". Use <code>/offline</code> for a generic "You are offline" page.'),
+    ];
+
     $form['service_worker']['cache_version'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Cache version'),
@@ -376,6 +384,7 @@ class ConfigurationForm extends ConfigFormBase {
       ->set('start_url', $form_state->getValue('start_url'))
       ->set('urls_to_cache', $form_state->getValue('urls_to_cache'))
       ->set('urls_to_exclude', $form_state->getValue('urls_to_exclude'))
+      ->set('offline_page', $form_state->getValue('offline_page'))
       ->set('cache_version', $form_state->getValue('cache_version'))
       ->set('cross_origin', $form_state->getValue('cross_origin'))
       ->set('skip_waiting', $form_state->getValue('skip_waiting'))

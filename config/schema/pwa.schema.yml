@@ -35,6 +35,9 @@ pwa.config:
     urls_to_exclude:
       type: text
       label: 'URLs exclude'
+    offline_page:
+      type: path
+      label: 'Offline page path'
     cache_version:
       type: text
       label: 'Cache version'
