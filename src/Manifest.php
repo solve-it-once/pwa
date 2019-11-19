@@ -40,7 +40,7 @@ class Manifest implements ManifestInterface {
   public function getOutput() {
     // Get values.
     $values = $this->getCleanValues();
-
+      $manifest_data['orientation'] = 'portrait';
     if (isset($values['site_name'])) {
       $manifest_data['name'] = $values['site_name'];
     }
