@@ -60,5 +60,17 @@ function hook_pwa_exclude_urls_alter(&$excludeUrls, CacheableMetadata &$cacheabl
 }
 
 /**
+ * Alters manifest data.
+ *
+ * This hook allows altering the generated manifest data before encoding it to JSON.
+ *
+ * @param array &$manifestData
+ *   Manifest data generated in Manifest::getOutput().
+ */
+function hook_pwa_manifest_alter(&$manifestData) {
+  $manifestData['short_name'] = 'App';
+}
+
+/**
  * @} End of "addtogroup hooks".
  */

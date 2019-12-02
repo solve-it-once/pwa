@@ -82,6 +82,8 @@ class Manifest implements ManifestInterface {
     }
     $manifest_data['scope'] = '/';
 
+    \Drupal::moduleHandler()->alter('pwa_manifest', $manifest_data);
+
     return Json::encode($manifest_data);
   }
 
