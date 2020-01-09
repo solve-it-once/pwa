@@ -60,6 +60,44 @@ function hook_pwa_exclude_urls_alter(&$excludeUrls, CacheableMetadata &$cacheabl
 }
 
 /**
+ * Alters cached assets urls list for the service worker file.
+ *
+ * This hook allows altering the list of asset URLs to cache on install.
+ *
+ * @param array &$resources
+ *   List of asset URLs to cache.
+ *
+ * @see hook_pwa_cache_urls_assets_page_alter()
+ */
+function hook_pwa_cache_urls_assets_alter(&$resources) {
+  $module_path = drupal_get_path('module', 'pwa');
+  $resources[] = "/$module_path/assets/loading.gif";
+}
+
+/**
+ * Alters cached assets urls list for each page for the service worker file.
+ *
+ * This hook allows altering the list of asset URLs to cache on install. This
+ * hook is called once for every page to be cached.
+ *
+ * @param array &$resources
+ *   List of asset URLs to cache for the given page.
+ * @param string $page
+ *   The relative URL of the page that resources are currently being extracted
+ *   from.
+ * @param \DOMXPath $xpath
+ *   The page xpath that may be queried to add additional resource URLs.
+ *
+ * @see hook_pwa_cache_urls_assets_alter()
+ */
+function hook_pwa_cache_urls_assets_page_alter(&$resources, $page, $xpath) {
+  // Cache lazily-loaded images.
+  foreach ($xpath->query('//img[@data-src]') as $image) {
+    $resources[] = $image->getAttribute('data-src');
+  }
+}
+
+/**
  * Alters manifest data.
  *
  * This hook allows altering the generated manifest data before encoding it to JSON.

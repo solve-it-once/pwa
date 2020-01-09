@@ -111,16 +111,18 @@ class PWAController implements ContainerInjectionInterface {
         continue;
       }
 
+      $page_resources = [];
+
       // Get all DOM data.
       $dom = new \DOMDocument();
       @$dom->loadHTML($data);
 
       $xpath = new \DOMXPath($dom);
       foreach ($xpath->query('//script[@src]') as $script) {
-        $resources[] = $script->getAttribute('src');
+        $page_resources[] = $script->getAttribute('src');
       }
       foreach ($xpath->query('//link[@rel="stylesheet"][@href]') as $stylesheet) {
-        $resources[] = $stylesheet->getAttribute('href');
+        $page_resources[] = $stylesheet->getAttribute('href');
       }
       foreach ($xpath->query('//style[@media="all" or @media="screen"]') as $stylesheets) {
         preg_match_all(
@@ -128,15 +130,22 @@ class PWAController implements ContainerInjectionInterface {
           ' ' . $stylesheets->textContent,
           $matches
         );
-        $resources = array_merge($resources, $matches[0]);
+        $page_resources = array_merge($page_resources, $matches[0]);
       }
       foreach ($xpath->query('//img[@src]') as $image) {
-        $resources[] = $image->getAttribute('src');
+        $page_resources[] = $image->getAttribute('src');
       }
+
+      // Allow other modules to alter cached asset URLs for this page.
+      \Drupal::moduleHandler()->alter('pwa_cache_urls_assets_page', $page_resources, $page, $xpath);
+
+      $resources = array_merge($resources, $page_resources);
     }
 
     $dedupe = array_unique($resources);
     $dedupe = array_values($dedupe);
+    // Allow other modules to alter the final list of cached asset URLs.
+    \Drupal::moduleHandler()->alter('pwa_cache_urls_assets', $dedupe);
     return $dedupe;
   }
 
