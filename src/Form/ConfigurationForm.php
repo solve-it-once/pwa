@@ -74,8 +74,8 @@ class ConfigurationForm extends ConfigFormBase {
     if (substr($files_path, 0, strlen($host)) == $host) {
       $files_path = str_replace($host, '', $files_path);
     }
-    $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme());
-    $realpath = \Drupal::service('file_system')->realpath(file_default_scheme() . "://");
+    $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(\Drupal::config('system.file')->get('default_scheme'));
+    $realpath = \Drupal::service('file_system')->realpath(\Drupal::config('system.file')->get('default_scheme') . "://");
 
     $config = $this->config('pwa.config');
 
@@ -401,7 +401,7 @@ class ConfigurationForm extends ConfigFormBase {
       $file_usage->add($file, 'PWA', 'PWA', $this->currentUser()->id());
 
       // Save new image.
-      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme());
+      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(\Drupal::config('system.file')->get('default_scheme'));
       $files_path = '/' . $wrapper->basePath() . '/pwa/';
       $file_uri = $files_path . $file->getFilename();
 
