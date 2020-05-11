@@ -194,16 +194,6 @@ class PWAController implements ContainerInjectionInterface {
     // Combine URLs from admin UI with manifest icons.
     $cacheWhitelist = array_merge($cacheUrls, $cacheIcons);
 
-    // Look up module release from package info.
-    $pwa_module_info = \Drupal::service('extension.list.module')->getExtensionInfo('pwa');
-    $pwa_module_version = $pwa_module_info['version'];
-
-    // Packaging script will always provide the published module version. Checking
-    // for NULL is only so maintainers have something predictable to test against.
-    if ($pwa_module_version == null) {
-      $pwa_module_version = '8.x-1.x-dev';
-    }
-
     // Active languages on the site.
     $languages = \Drupal::languageManager()->getLanguages();
 
@@ -217,7 +207,7 @@ class PWAController implements ContainerInjectionInterface {
       '[/*exclude_cache_url*/]' => Json::encode($exclude_cache_url),
       "'/offline'/*offlinePage*/" => "'" . $config->get('offline_page') . "'",
       '[/*modulePath*/]' => '/' . drupal_get_path('module', 'pwa'),
-      '1/*cacheVersion*/' => '\'' . $pwa_module_version . '-v' . ($config->get('cache_version') ?: 1) . '\'',
+      '1/*cacheVersion*/' => '\'' . $this->pwa_get_cache_version() . '\'',
       'false/*pwaSkipWaiting*/' => $skip_waiting,
     ];
     if (!empty($cacheUrls)) {
@@ -234,6 +224,29 @@ class PWAController implements ContainerInjectionInterface {
     $response->addCacheableDependency($cacheable_metadata);
 
     return $response;
+  }
+
+  /**
+   * Returns current cache version.
+   *
+   * @return string
+   *   Cache version.
+   */
+  public static function pwa_get_cache_version() {
+    // Get module configuration.
+    $config = \Drupal::config('pwa.config');
+
+    // Look up module release from package info.
+    $pwa_module_info = \Drupal::service('extension.list.module')->getExtensionInfo('pwa');
+    $pwa_module_version = $pwa_module_info['version'];
+
+    // Packaging script will always provide the published module version. Checking
+    // for NULL is only so maintainers have something predictable to test against.
+    if ($pwa_module_version == null) {
+      $pwa_module_version = '8.x-1.x-dev';
+    }
+
+    return $pwa_module_version . '-v' . ($config->get('cache_version') ?: 1);
   }
 
   /**
