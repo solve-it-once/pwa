@@ -204,12 +204,16 @@ class PWAController implements ContainerInjectionInterface {
       $pwa_module_version = '8.x-1.x-dev';
     }
 
+    // Active languages on the site.
+    $languages = \Drupal::languageManager()->getLanguages();
+
     // Get the skip-waiting setting.
     $skip_waiting = $config->get('skip_waiting') ? 'true' : 'false';
 
     // Set up placeholders.
     $replace = [
       '[/*cacheUrls*/]' => Json::encode($cacheWhitelist),
+      '[/*activeLanguages*/]' => Json::encode(array_keys($languages)),
       '[/*exclude_cache_url*/]' => Json::encode($exclude_cache_url),
       "'/offline'/*offlinePage*/" => "'" . $config->get('offline_page') . "'",
       '[/*modulePath*/]' => '/' . drupal_get_path('module', 'pwa'),

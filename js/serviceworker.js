@@ -26,6 +26,9 @@ let CACHE_URLS = [/*cacheUrls*/];
 // cache clears and this list will be hardcoded in the resultant SW file.
 const CACHE_URLS_ASSETS = [/*cacheUrlsAssets*/];
 
+// Active languages on the site.
+const ACTIVE_LANGUAGES = [/*activeLanguages*/];
+
 // When no connection is available, show this URL instead of the content that
 // should be available at the URL. This URL is never shown in the browser.
 const CACHE_OFFLINE = '/offline'/*offlinePage*/;
@@ -158,14 +161,34 @@ function urlNotExcluded(url) {
 }
 
 /**
+ * Returns request language prefix.
+ *
+ * @param {object} request
+ *
+ * @return {string}
+ */
+function getLanguagePathPrefix(request) {
+  const url = new URL(request.url);
+
+  for (let langcode of ACTIVE_LANGUAGES) {
+    if (url.pathname.startsWith(`/${langcode}`)) {
+      return `/${langcode}`;
+    }
+  }
+  return '';
+}
+
+/**
  * Default offline page.
  *
  * @param {object} error
+ * @param {object} request
  *
  * @return {Response}
  */
-function catchOffline(error) {
-  return caches.match(CACHE_OFFLINE);
+function catchOffline(error, request) {
+  const pathPrefix = getLanguagePathPrefix(request);
+  return caches.match(`${pathPrefix}${CACHE_OFFLINE}`);
 }
 
 /**
@@ -373,7 +396,7 @@ self.addEventListener('fetch', function (event) {
         .catch(function (error) {
           return fetchResourceFromCache(error)
             .then(returnResourceFromCache)
-            .catch(catchOffline);
+            .catch((error) => catchOffline(error, request));
         });
     }
   };
