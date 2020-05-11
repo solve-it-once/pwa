@@ -195,7 +195,7 @@ class PWAController implements ContainerInjectionInterface {
     $cacheWhitelist = array_merge($cacheUrls, $cacheIcons);
 
     // Look up module release from package info.
-    $pwa_module_info = system_get_info('module', 'pwa');
+    $pwa_module_info = \Drupal::service('extension.list.module')->getExtensionInfo('pwa');
     $pwa_module_version = $pwa_module_info['version'];
 
     // Packaging script will always provide the published module version. Checking
