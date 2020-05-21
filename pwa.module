@@ -12,6 +12,10 @@ use Drupal\pwa\Controller\PWAController;
  * Implements hook_page_attachments().
  */
 function pwa_page_attachments(array &$attachments) {
+  if (!\Drupal::currentUser()->hasPermission('access content')) {
+    return;
+  }
+
   $attachments['#attached']['library'][] = 'pwa/serviceworker';
 
   $config = \Drupal::config('pwa.config');
