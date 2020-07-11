@@ -74,6 +74,7 @@ class PWAController implements ContainerInjectionInterface {
     ]);
     $meta_data = $response->getCacheableMetadata();
     $meta_data->addCacheTags(['manifestjson']);
+    $meta_data->addCacheContexts(['languages:language_interface']);
     return $response;
   }
 
