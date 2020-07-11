@@ -5,7 +5,7 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register("/serviceworker-pwa", {
+      navigator.serviceWorker.register(drupalSettings.pwa.installPath, {
         scope: drupalSettings.path.baseUrl
       }).then(function (registration) {
         console.log("Service Worker registered! Scope: ".concat(registration.scope));

@@ -47,6 +47,11 @@ function pwa_page_attachments(array &$attachments) {
 
   // Add cache version to drupal settings.
   $attachments['#attached']['drupalSettings']['pwa']['cache_version'] = PWAController::pwa_get_cache_version();
+
+  $installPath = '/serviceworker-pwa';
+  \Drupal::moduleHandler()->alter('pwa_install_path', $installPath);
+
+  $attachments['#attached']['drupalSettings']['pwa']['installPath'] = $installPath;
 }
 
 /**

@@ -7,6 +7,7 @@
 namespace Drupal\pwa\Controller;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\pwa\ManifestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -37,16 +38,25 @@ class PWAController implements ContainerInjectionInterface {
   private $state;
 
   /**
+   * ModuleHandler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  private $moduleHandler;
+
+  /**
    * Constructor.
    *
    * @param \Drupal\pwa\ManifestInterface $manifest
    *   The manifest service.
    * @param \Drupal\Core\State\StateInterface $state
    *   The system state.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    */
-  public function __construct(ManifestInterface $manifest, StateInterface $state) {
+  public function __construct(ManifestInterface $manifest, StateInterface $state, ModuleHandlerInterface $moduleHandler) {
     $this->manifest = $manifest;
     $this->state = $state;
+    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -55,7 +65,8 @@ class PWAController implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('pwa.manifest'),
-      $container->get('state')
+      $container->get('state'),
+      $container->get('module_handler')
     );
   }
 
@@ -138,7 +149,7 @@ class PWAController implements ContainerInjectionInterface {
       }
 
       // Allow other modules to alter cached asset URLs for this page.
-      \Drupal::moduleHandler()->alter('pwa_cache_urls_assets_page', $page_resources, $page, $xpath);
+      $this->moduleHandler->alter('pwa_cache_urls_assets_page', $page_resources, $page, $xpath);
 
       $resources = array_merge($resources, $page_resources);
     }
@@ -146,7 +157,7 @@ class PWAController implements ContainerInjectionInterface {
     $dedupe = array_unique($resources);
     $dedupe = array_values($dedupe);
     // Allow other modules to alter the final list of cached asset URLs.
-    \Drupal::moduleHandler()->alter('pwa_cache_urls_assets', $dedupe);
+    $this->moduleHandler->alter('pwa_cache_urls_assets', $dedupe);
     return $dedupe;
   }
 
@@ -178,11 +189,6 @@ class PWAController implements ContainerInjectionInterface {
       ->setCacheMaxAge(86400)
       ->setCacheContexts(['url']);
 
-    // Allow other modules to alter the URL's. Also pass the CacheableMetadata
-    // object so these modules can add cacheability metadata to the response.
-    \Drupal::moduleHandler()->alter('pwa_cache_urls', $cacheUrls, $cacheable_metadata);
-    \Drupal::moduleHandler()->alter('pwa_exclude_urls', $exclude_cache_url, $cacheable_metadata);
-
     // Get icons list and convert into array of sources.
     $manifest = Json::decode($this->manifest->getOutput());
     $cacheIcons = [];
@@ -194,6 +200,11 @@ class PWAController implements ContainerInjectionInterface {
 
     // Combine URLs from admin UI with manifest icons.
     $cacheWhitelist = array_merge($cacheUrls, $cacheIcons);
+
+    // Allow other modules to alter the URL's. Also pass the CacheableMetadata
+    // object so these modules can add cacheability metadata to the response.
+    $this->moduleHandler->alter('pwa_cache_urls', $cacheWhitelist, $cacheable_metadata);
+    $this->moduleHandler->alter('pwa_exclude_urls', $exclude_cache_url, $cacheable_metadata);
 
     // Active languages on the site.
     $languages = \Drupal::languageManager()->getLanguages();
@@ -214,6 +225,8 @@ class PWAController implements ContainerInjectionInterface {
     if (!empty($cacheUrls)) {
       $replace['[/*cacheUrlsAssets*/]'] = Json::encode($this->_pwa_fetch_offline_page_resources($cacheUrls));
     }
+
+    $this->moduleHandler->alter('pwa_replace_placeholders', $replace);
 
     // Fill placeholders and return final file.
     $data = str_replace(array_keys($replace), array_values($replace), $sw);
@@ -243,7 +256,7 @@ class PWAController implements ContainerInjectionInterface {
 
     // Packaging script will always provide the published module version. Checking
     // for NULL is only so maintainers have something predictable to test against.
-    if ($pwa_module_version == null) {
+    if ($pwa_module_version == NULL) {
       $pwa_module_version = '8.x-1.x-dev';
     }
 
