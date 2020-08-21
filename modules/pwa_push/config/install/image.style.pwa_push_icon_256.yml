@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies: {  }
+name: pwa_push_icon_256
+label: 'push_pwa Icon (256 x 256)'
+effects:
+  pwa_push_icon_256:
+    uuid: pwa_push_icon_256
+    id: image_scale
+    weight: 1
+    data:
+      width: 256
+      height: 256
