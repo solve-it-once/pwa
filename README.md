@@ -62,7 +62,7 @@ INSTALLATION
 CONFIGURATION
 -------------
 
- Visit https://dev-d8-pwa.pantheonsite.io/af/admin/config/pwa/settings
+ Visit /admin/config/pwa/settings
 
  Add URLs you would like to to "cache on install." These will serve the page
  offline even if they have not been visited. Make sure the URL is not a 404.

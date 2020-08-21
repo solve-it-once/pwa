@@ -2,3 +2,6 @@ name: Progressive Web App Push Notification
 type: module
 description: Push notifications
 core: 8.x
+core_version_requirement: ^8 || ^9
+dependancies:
+  - pwa
