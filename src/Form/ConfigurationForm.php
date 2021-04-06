@@ -25,6 +25,13 @@ class ConfigurationForm extends ConfigFormBase {
    */
   protected $manifest;
 
+     /**
+      * The system file config.
+      *
+      * @var \Drupal\Core\Config\ImmutableConfig
+      */
+     protected $configSystemFile;
+
   /**
    * Constructs a \Drupal\system\ConfigFormBase object.
    *
@@ -35,6 +42,7 @@ class ConfigurationForm extends ConfigFormBase {
     parent::__construct($config_factory);
 
     $this->manifest = $manifest;
+    $this->configSystemFile = $config_factory->get('system.file');
 
   }
 

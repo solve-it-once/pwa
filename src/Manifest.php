@@ -66,16 +66,19 @@ class Manifest implements ManifestInterface {
       $manifest_data['icons'][0]['src'] = $values['image'];
       $manifest_data['icons'][0]['sizes'] = '512x512';
       $manifest_data['icons'][0]['type'] = 'image/png';
+      $manifest_data['icons'][0]['purpose'] = 'any maskable';
     }
     if (isset($values['image_small'])) {
       $manifest_data['icons'][1]['src'] = $values['image_small'];
       $manifest_data['icons'][1]['sizes'] = '192x192';
       $manifest_data['icons'][1]['type'] = 'image/png';
+      $manifest_data['icons'][1]['purpose'] = 'any maskable';
     }
     if (isset($values['image_very_small'])) {
       $manifest_data['icons'][2]['src'] = $values['image_very_small'];
       $manifest_data['icons'][2]['sizes'] = '144x144';
-      $manifest_data['icons'][2]['type'] = 'image/png';
+      $manifest_data['icons'][2]['purpose'] = 'any maskable';
+
     }
     if (isset($values['start_url'])) {
       $manifest_data['start_url'] = $values['start_url'];
