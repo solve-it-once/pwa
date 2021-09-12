@@ -4,6 +4,7 @@ namespace Drupal\pwa;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
 
@@ -27,11 +28,22 @@ class Manifest implements ManifestInterface {
   private $languageManager;
 
   /**
-   * Constructor.
+   * The theme manager.
+   *
+   * @var \Drupal\Core\Theme\ThemeManagerInterface
    */
-  public function __construct(ConfigFactoryInterface $config_factory, LanguageManagerInterface $language_manager) {
+  private $themeManager;
+
+  /**
+   * Constructor.
+   *
+   * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
+   *   The theme manager.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, LanguageManagerInterface $language_manager, ThemeManagerInterface $themeManager) {
     $this->configFactory = $config_factory;
     $this->languageManager = $language_manager;
+    $this->themeManager = $themeManager;
   }
 
   /**
@@ -86,6 +98,7 @@ class Manifest implements ManifestInterface {
     $manifest_data['scope'] = '/';
 
     \Drupal::moduleHandler()->alter('pwa_manifest', $manifest_data);
+    $this->themeManager->alter('pwa_manifest', $manifest_data);
 
     return Json::encode($manifest_data);
   }

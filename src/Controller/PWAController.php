@@ -9,6 +9,7 @@ namespace Drupal\pwa\Controller;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\State\StateInterface;
+use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\pwa\ManifestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +46,13 @@ class PWAController implements ContainerInjectionInterface {
   private $moduleHandler;
 
   /**
+   * The theme manager.
+   *
+   * @var \Drupal\Core\Theme\ThemeManagerInterface
+   */
+  private $themeManager;
+
+  /**
    * Constructor.
    *
    * @param \Drupal\pwa\ManifestInterface $manifest
@@ -52,11 +60,14 @@ class PWAController implements ContainerInjectionInterface {
    * @param \Drupal\Core\State\StateInterface $state
    *   The system state.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
+   *   The theme manager.
    */
-  public function __construct(ManifestInterface $manifest, StateInterface $state, ModuleHandlerInterface $moduleHandler) {
+  public function __construct(ManifestInterface $manifest, StateInterface $state, ModuleHandlerInterface $moduleHandler, ThemeManagerInterface $themeManager) {
     $this->manifest = $manifest;
     $this->state = $state;
     $this->moduleHandler = $moduleHandler;
+    $this->themeManager = $themeManager;
   }
 
   /**
@@ -66,7 +77,8 @@ class PWAController implements ContainerInjectionInterface {
     return new static(
       $container->get('pwa.manifest'),
       $container->get('state'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('theme.manager')
     );
   }
 
@@ -148,8 +160,10 @@ class PWAController implements ContainerInjectionInterface {
         $page_resources[] = $image->getAttribute('src');
       }
 
-      // Allow other modules to alter cached asset URLs for this page.
+      // Allow other modules and themes to alter cached asset URLs for this
+      // page.
       $this->moduleHandler->alter('pwa_cache_urls_assets_page', $page_resources, $page, $xpath);
+      $this->themeManager->alter('pwa_cache_urls_assets_page', $page_resources, $page, $xpath);
 
       $resources = array_merge($resources, $page_resources);
     }
