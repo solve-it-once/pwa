@@ -3,13 +3,18 @@
 namespace Drupal\pwa\Form;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\file\Entity\File;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
+use Drupal\Core\Url;
+use Drupal\file\FileStorageInterface;
+use Drupal\file\FileUsage\FileUsageInterface;
 use Drupal\pwa\ManifestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Url;
 
 /**
  * Class ConfigurationForm.
@@ -19,30 +24,98 @@ use Drupal\Core\Url;
 class ConfigurationForm extends ConfigFormBase {
 
   /**
+   * The cache tags invalidator service.
+   *
+   * @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface
+   */
+  protected $cacheTagsInvalidator;
+
+  /**
+   * The file entity storage.
+   *
+   * @var \Drupal\file\FileStorageInterface
+   */
+  protected $fileStorage;
+
+  /**
+   * The file system helper service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
+   * The file usage backend.
+   *
+   * @var \Drupal\file\FileUsage\FileUsageInterface
+   */
+  protected $fileUsage;
+
+  /**
    * The manifest service.
    *
-   * @var use Drupal\pwa\ManifestInterface
+   * @var \Drupal\pwa\ManifestInterface
    */
   protected $manifest;
 
-     /**
-      * The system file config.
-      *
-      * @var \Drupal\Core\Config\ImmutableConfig
-      */
-     protected $configSystemFile;
+  /**
+   * The stream wrapper manager.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface
+   */
+  protected $streamWrapperManager;
 
   /**
-   * Constructs a \Drupal\system\ConfigFormBase object.
+   * Constructor; saves dependencies.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cacheTagsInvalidator
+   *   The cache tags invalidator service.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The factory for configuration objects.
+   *
+   * @param \Drupal\file\FileStorageInterface $fileStorage
+   *   The file entity storage.
+   *
+   * @param \Drupal\Core\File\FileSystemInterface $fileSystem
+   *   The file system helper service.
+   *
+   * @param \Drupal\file\FileUsage\FileUsageInterface $fileUsage
+   *   The file usage backend.
+   *
+   * @param \Drupal\pwa\ManifestInterface $manifest
+   *   The manifest service.
+   *
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
+   *
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $streamWrapperManager
+   *   The stream wrapper manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ManifestInterface $manifest) {
-    parent::__construct($config_factory);
+  public function __construct(
+    CacheTagsInvalidatorInterface $cacheTagsInvalidator,
+    ConfigFactoryInterface        $configFactory,
+    FileStorageInterface          $fileStorage,
+    FileSystemInterface           $fileSystem,
+    FileUsageInterface            $fileUsage,
+    ManifestInterface             $manifest,
+    MessengerInterface            $messenger,
+    StreamWrapperManagerInterface $streamWrapperManager
+  ) {
 
-    $this->manifest = $manifest;
-    $this->configSystemFile = $config_factory->get('system.file');
+    parent::__construct($configFactory);
+
+    $this->cacheTagsInvalidator = $cacheTagsInvalidator;
+    $this->fileStorage          = $fileStorage;
+    $this->fileSystem           = $fileSystem;
+    $this->fileUsage            = $fileUsage;
+    $this->manifest             = $manifest;
+    // \Drupal\Core\Messenger\MessengerTrait::messenger() defaults to getting
+    // the messenger service via the static \Drupal::messenger() method if
+    // $this->messenger has not been set, and so is not 100% true dependency
+    // injection unless we save it here for it to find.
+    $this->messenger            = $messenger;
+    $this->streamWrapperManager = $streamWrapperManager;
 
   }
 
@@ -51,8 +124,14 @@ class ConfigurationForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('cache_tags.invalidator'),
       $container->get('config.factory'),
-      $container->get('pwa.manifest')
+      $container->get('entity_type.manager')->getStorage('file'),
+      $container->get('file_system'),
+      $container->get('file.usage'),
+      $container->get('pwa.manifest'),
+      $container->get('messenger'),
+      $container->get('stream_wrapper_manager')
     );
   }
 
@@ -65,7 +144,10 @@ class ConfigurationForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
-   */
+   *
+   * @todo Can we use the injected 'stream_wrapper_manager' service rather than
+   *   file_create_url() to build $files_path?
+    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $host = $this->getRequest()->server->get('HTTP_HOST');
     $files_path = file_create_url("public://pwa") . '/';
@@ -82,8 +164,12 @@ class ConfigurationForm extends ConfigFormBase {
     if (substr($files_path, 0, strlen($host)) == $host) {
       $files_path = str_replace($host, '', $files_path);
     }
-    $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(\Drupal::config('system.file')->get('default_scheme'));
-    $realpath = \Drupal::service('file_system')->realpath(\Drupal::config('system.file')->get('default_scheme') . "://");
+    $wrapper = $this->streamWrapperManager->getViaScheme(
+      $this->config('system.file')->get('default_scheme')
+    );
+    $realpath = $this->fileSystem->realpath(
+      $this->config('system.file')->get('default_scheme') . "://"
+    );
 
     $config = $this->config('pwa.config');
 
@@ -347,6 +433,10 @@ class ConfigurationForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
+   *
+   * @todo Can we use the injected 'theme.manager' service rather than
+   *   theme_get_setting() and then do
+   *   $this->themeManager->getActiveTheme()->getLogo()?
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('pwa.config');
@@ -400,16 +490,17 @@ class ConfigurationForm extends ConfigFormBase {
 
     // Save image if exists
     if (!empty($fid)) {
-      $file = File::load($fid);
+      $file = $this->fileStorage->load($fid);
 
-      $file_usage = \Drupal::service('file.usage');
       $file->setPermanent();
       $file->save();
 
-      $file_usage->add($file, 'PWA', 'PWA', $this->currentUser()->id());
+      $this->fileUsage->add($file, 'PWA', 'PWA', $this->currentUser()->id());
 
       // Save new image.
-      $wrapper = \Drupal::service('stream_wrapper_manager')->getViaScheme(\Drupal::config('system.file')->get('default_scheme'));
+      $wrapper = $this->streamWrapperManager->getViaScheme(
+        $this->config('system.file')->get('default_scheme')
+      );
       $files_path = '/' . $wrapper->basePath() . '/pwa/';
       $file_uri = $files_path . $file->getFilename();
 
@@ -458,7 +549,7 @@ class ConfigurationForm extends ConfigFormBase {
           ->save();
       }
     }
-    Cache::invalidateTags(['manifestjson']);
+    $this->cacheTagsInvalidator->invalidateTags(['manifestjson']);
 
     parent::submitForm($form, $form_state);
   }
