@@ -171,8 +171,8 @@ class Manifest implements ManifestInterface {
     // Set defaults.
     $lang = $this->languageManager->getDefaultLanguage();
     $site_name = $this->configFactory->get('system.site')->get('name');
-    $path = $this->requestStack->getSchemeAndHttpHost() . '/' .
-      $this->moduleHandler->getModule('pwa')->getPath();
+    $path = $this->requestStack->getCurrentRequest()->getSchemeAndHttpHost() .
+      '/' . $this->moduleHandler->getModule('pwa')->getPath();
     $output = [
       'site_name' => $site_name,
       'short_name' => $site_name,
