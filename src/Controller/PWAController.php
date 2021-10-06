@@ -330,7 +330,7 @@ class PWAController implements ContainerInjectionInterface {
    * @return string
    *   Cache version.
    */
-  public static function pwa_get_cache_version() {
+  public function pwa_get_cache_version() {
     // Get module configuration.
     $config = $this->configFactory->get('pwa.config');
 

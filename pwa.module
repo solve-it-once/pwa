@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Url;
-use Drupal\pwa\Controller\PWAController;
 
 /**
  * Implements hook_page_attachments().
@@ -45,8 +44,15 @@ function pwa_page_attachments(array &$attachments) {
   ];
   $attachments['#attached']['html_head'][] = [$theme_color, 'theme_color'];
 
+  /** @var callable */
+  $getCacheVersionCallable = \Drupal::service('controller_resolver')
+    ->getControllerFromDefinition(
+      '\Drupal\pwa\Controller\PWAController::pwa_get_cache_version'
+    );
+
   // Add cache version to drupal settings.
-  $attachments['#attached']['drupalSettings']['pwa']['cache_version'] = PWAController::pwa_get_cache_version();
+  $attachments['#attached']['drupalSettings']['pwa']['cache_version'] =
+    \call_user_func($getCacheVersionCallable);
 
   $installPath = '/serviceworker-pwa';
   \Drupal::moduleHandler()->alter('pwa_install_path', $installPath);
