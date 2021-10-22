@@ -138,9 +138,9 @@ class Manifest implements ManifestInterface {
       'background_color' => '#ffffff',
       'theme_color' => '#ffffff',
       'display' => 'standalone',
-      'image' => $path . '/assets/druplicon-512.png',
-      'image_small' => $path . '/assets/druplicon-192.png',
-      'image_very_small' => $path . '/assets/druplicon-144.png',
+      'image' => $path . '/assets/icon-512.png',
+      'image_small' => $path . '/assets/icon-192.png',
+      'image_very_small' => $path . '/assets/icon-144.png',
     ];
 
     $config = $this->configFactory->get('pwa.config');
