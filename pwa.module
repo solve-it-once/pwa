@@ -5,6 +5,7 @@
  * PWA hooks.
  */
 
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\pwa\Controller\PWAController;
 
@@ -72,4 +73,11 @@ function pwa_str_to_list($string) {
   $list = explode("\n", $string);
   $list = array_map('trim', $list);
   return array_filter($list, 'strlen');
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function pwa_user_login(AccountInterface $account) {
+  \Drupal::service('session')->set('pwa_reset', TRUE);
 }
