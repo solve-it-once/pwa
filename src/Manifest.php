@@ -2,11 +2,13 @@
 
 namespace Drupal\pwa;
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Theme\ThemeManagerInterface;
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Manifest JSON building service.
@@ -14,7 +16,7 @@ use Drupal\Core\Url;
 class Manifest implements ManifestInterface {
 
   /**
-   * The configuration manager.
+   * The configuration factory.
    *
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
@@ -28,6 +30,20 @@ class Manifest implements ManifestInterface {
   private $languageManager;
 
   /**
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  private $moduleHandler;
+
+  /**
+   * The Symfony request stack.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  private $requestStack;
+
+  /**
    * The theme manager.
    *
    * @var \Drupal\Core\Theme\ThemeManagerInterface
@@ -35,15 +51,35 @@ class Manifest implements ManifestInterface {
   private $themeManager;
 
   /**
-   * Constructor.
+   * Constructor; saves dependencies.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The configuration factory.
+   *
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
+   *   The language manager.
+   *
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The module handler.
+   *
+   * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
+   *   The Symfony request stack.
    *
    * @param \Drupal\Core\Theme\ThemeManagerInterface $themeManager
    *   The theme manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, LanguageManagerInterface $language_manager, ThemeManagerInterface $themeManager) {
-    $this->configFactory = $config_factory;
-    $this->languageManager = $language_manager;
-    $this->themeManager = $themeManager;
+  public function __construct(
+    ConfigFactoryInterface    $configFactory,
+    LanguageManagerInterface  $languageManager,
+    ModuleHandlerInterface    $moduleHandler,
+    RequestStack              $requestStack,
+    ThemeManagerInterface     $themeManager
+  ) {
+    $this->configFactory    = $configFactory;
+    $this->languageManager  = $languageManager;
+    $this->moduleHandler    = $moduleHandler;
+    $this->requestStack     = $requestStack;
+    $this->themeManager     = $themeManager;
   }
 
   /**
@@ -97,7 +133,7 @@ class Manifest implements ManifestInterface {
     }
     $manifest_data['scope'] = '/';
 
-    \Drupal::moduleHandler()->alter('pwa_manifest', $manifest_data);
+    $this->moduleHandler->alter('pwa_manifest', $manifest_data);
     $this->themeManager->alter('pwa_manifest', $manifest_data);
 
     return Json::encode($manifest_data);
@@ -126,12 +162,17 @@ class Manifest implements ManifestInterface {
    *
    * @return array
    *   Values from the configuration.
+   *
+   * @todo Can we use the injected 'theme.manager' service rather than
+   *   theme_get_setting() and then do
+   *   $this->themeManager->getActiveTheme()->getLogo()?
    */
   private function getCleanValues() {
     // Set defaults.
     $lang = $this->languageManager->getDefaultLanguage();
     $site_name = $this->configFactory->get('system.site')->get('name');
-    $path = \Drupal::request()->getSchemeAndHttpHost() . '/' . drupal_get_path('module', 'pwa');
+    $path = $this->requestStack->getCurrentRequest()->getSchemeAndHttpHost() .
+      '/' . $this->moduleHandler->getModule('pwa')->getPath();
     $output = [
       'site_name' => $site_name,
       'short_name' => $site_name,
