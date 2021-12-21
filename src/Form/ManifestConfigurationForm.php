@@ -10,18 +10,15 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
-use Drupal\Core\Url;
 use Drupal\file\FileStorageInterface;
 use Drupal\file\FileUsage\FileUsageInterface;
 use Drupal\pwa\ManifestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class ConfigurationForm.
- *
- * @package Drupal\pwa\Form
+ * Manifest configuration form.
  */
-class ConfigurationForm extends ConfigFormBase {
+class ManifestConfigurationForm extends ConfigFormBase {
 
   /**
    * The cache tags invalidator service.
@@ -139,7 +136,14 @@ class ConfigurationForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'pwa_configuration_form';
+    return 'pwa_manifest_configuration_form';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEditableConfigNames() {
+    return ['pwa.config'];
   }
 
   /**
@@ -147,8 +151,9 @@ class ConfigurationForm extends ConfigFormBase {
    *
    * @todo Can we use the injected 'stream_wrapper_manager' service rather than
    *   file_create_url() to build $files_path?
-    */
+   */
   public function buildForm(array $form, FormStateInterface $form_state) {
+
     $host = $this->getRequest()->server->get('HTTP_HOST');
     $files_path = file_create_url("public://pwa") . '/';
     if (substr($files_path, 0, 7) == 'http://') {
@@ -173,13 +178,7 @@ class ConfigurationForm extends ConfigFormBase {
 
     $config = $this->config('pwa.config');
 
-    $form['manifest'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Manifest'),
-      '#open' => TRUE,
-    ];
-
-    $form['manifest']['name'] = [
+    $form['name'] = [
       "#type" => 'textfield',
       '#title' => $this->t('Web app name'),
       '#description' => $this->t("The name for the application that needs to be displayed to the user."),
@@ -189,7 +188,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#size' => 60,
     ];
 
-    $form['manifest']['short_name'] = [
+    $form['short_name'] = [
       "#type" => 'textfield',
       "#title" => $this->t('Short name'),
       "#description" => $this->t("A short application name, this one gets displayed on the user's homescreen."),
@@ -199,7 +198,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#size' => 30,
     ];
 
-    $form['manifest']['lang'] = [
+    $form['lang'] = [
       "#type" => 'textfield',
       "#title" => $this->t('Lang'),
       "#description" => $this->t('The default language of the manifest.'),
@@ -209,7 +208,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#size' => 30,
     ];
 
-    $form['manifest']['description'] = [
+    $form['description'] = [
       "#type" => 'textfield',
       "#title" => $this->t('Description'),
       "#description" => $this->t('The description of your PWA.'),
@@ -218,7 +217,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#size' => 60,
     ];
 
-    $form['manifest']['start_url'] = [
+    $form['start_url'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Start URL'),
       '#description' => $this->t('Start URL.'),
@@ -226,7 +225,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#rows' => 1
     ];
 
-    $form['manifest']['theme_color'] = [
+    $form['theme_color'] = [
       "#type" => 'color',
       "#title" => $this->t('Theme color'),
       "#description" => $this->t('This color sometimes affects how the application is displayed by the OS.'),
@@ -234,7 +233,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    $form['manifest']['background_color'] = [
+    $form['background_color'] = [
       "#type" => 'color',
       "#title" => $this->t('Background color'),
       "#description" => $this->t('This color gets shown as the background when the application is launched'),
@@ -244,7 +243,7 @@ class ConfigurationForm extends ConfigFormBase {
 
     $id = $this->getDisplayValue($config->get('display'), TRUE);
 
-    $form['manifest']['display'] = [
+    $form['display'] = [
       "#type" => 'select',
       "#title" => $this->t('Display type'),
       "#description" => $this->t('This determines which UI elements from the OS are displayed.'),
@@ -258,7 +257,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    $form['manifest']['cross_origin'] = [
+    $form['cross_origin'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('The site is behind HTTP basic authentication'),
       '#description' => $this->t('This will ensure any login credentials are passed to the manifest.'),
@@ -271,14 +270,14 @@ class ConfigurationForm extends ConfigFormBase {
       'file_validate_image_resolution' => ['512x512', '512x512'],
     ];
 
-    $form['manifest']['default_image'] = [
+    $form['default_image'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use the theme image'),
       "#description" => $this->t('This depends on the logo that the theme generates'),
       "#default_value" => $config->get('default_image'),
     ];
 
-    $form['manifest']['images'] = [
+    $form['images'] = [
       '#type' => 'fieldset',
       '#states' => [
         'invisible' => [
@@ -287,7 +286,7 @@ class ConfigurationForm extends ConfigFormBase {
       ],
     ];
 
-    $form['manifest']['images']['image'] = [
+    $form['images']['image'] = [
       '#type' => 'managed_file',
       '#name' => 'image',
       '#title' => $this->t('Image'),
@@ -299,111 +298,22 @@ class ConfigurationForm extends ConfigFormBase {
 
     $bobTheHTMLBuilder = '<label>Current Image:</label> <br/> <img src="' . $config->get('image') . '" width="200"/>';
     if ($config->get('default_image') == 0) {
-      $form['manifest']['images']['current_image'] = [
+      $form['images']['current_image'] = [
         '#markup' => $bobTheHTMLBuilder,
         '#name' => 'current image',
         '#id' => 'current_image',
       ];
     }
 
-    $form['service_worker'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Service worker'),
-      '#open' => TRUE,
-    ];
-
-    $form['service_worker']['urls_to_cache'] = [
-      '#type' => 'textarea',
-      '#title' => $this->t('URLs to cache on install'),
-      '#description' => $this->t('These will serve the page offline even if they have not been visited. Make sure the URL is not a 404. Make sure are these are relative URLs, tokens or regex are not supported. Because we cache these, you may need to flush your cache when changing this value.'),
-      '#default_value' => $config->get('urls_to_cache'),
-      '#rows' => 7
-    ];
-
-    $form['service_worker']['urls_to_exclude'] = [
-      '#type' => 'textarea',
-      '#title' => $this->t('URLs to exclude'),
-      '#description' => $this->t('Takes a regex, these URLs will use network-only, default config should be, admin/.* and user/reset/.*.'),
-      '#default_value' => $config->get('urls_to_exclude'),
-      '#rows' => 7
-    ];
-
-    $form['service_worker']['offline_page'] = [
-      '#type' => 'textfield',
-      '#title' => t('Offline page'),
-      '#default_value' => $config->get('offline_page') ?: '/offline',
-      '#size' => 40,
-      '#description' => t('This page is displayed when the user is offline and the requested page is not cached. It is automatically added to the "URLs to cache". Use <code>/offline</code> for a generic "You are offline" page.'),
-    ];
-
-    $form['service_worker']['cache_version'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Cache version'),
-      '#description' => $this->t('Changing this number will invalidate all Service Worker caches. Use it when assets have significantly changed or if you want to force a cache refresh for all clients.'),
-      '#size' => 5,
-      '#default_value' => $config->get('cache_version') ?: 1,
-    ];
-
-    $form['service_worker']['skip_waiting'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Skip waiting'),
-      '#description' => $this->t("If enabled, an updated service worker will not wait, but instead activates as soon as it's finished installing"),
-      '#title_display' => 'after',
-      '#default_value' => $config->get('skip_waiting'),
-    ];
-
     return parent::buildForm($form, $form_state);
-  }
 
-  /**
-   *
-   * function converts an id to a display string or a string to an id
-   *
-   * @param $value
-   * @param boolean $needId
-   *
-   * @return int|string
-   */
-  private function getDisplayValue($value, $needId) {
-    if ($needId) {
-      $id = 1;
-      switch ($value) {
-        case 'standalone':
-          $id = 2;
-          break;
-        case 'minimal-ui':
-          $id = 3;
-          break;
-        case 'browser':
-          $id = 4;
-          break;
-      }
-      return $id;
-    }
-    else {
-      $display = '';
-      switch ($value) {
-        case 1:
-          $display = 'fullscreen';
-          break;
-        case 2:
-          $display = 'standalone';
-          break;
-        case 3:
-          $display = 'minimal-ui';
-          break;
-        case 4:
-          $display = 'browser';
-          break;
-      }
-    }
-    return $display;
   }
 
   /**
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
+
     parent::validateForm($form, $form_state);
 
     $default_image = $form_state->getValue('default_image');
@@ -414,21 +324,6 @@ class ConfigurationForm extends ConfigFormBase {
       $form_state->setErrorByName('image', $this->t('Upload a image, or chose the theme image.'));
     }
 
-    // Check urls format
-    $urls_to_cache = pwa_str_to_list($form_state->getValue('urls_to_cache'));
-    foreach ($urls_to_cache as $page) {
-      // If link is internal.
-      try {
-         $url = Url::fromUserInput($page);
-       }
-       catch(\Exception $e) {
-         $form_state->setErrorByName('urls_to_cache', $this->t("The user-entered URL '{$page}' must begin with a '/', '?', or '#'."));
-       }
-       // If link does not exist.
-       if (isset($url) && !$url->isRouted()) {
-         $form_state->setErrorByName('urls_to_cache', $this->t('Error "' . $page . '" URL to Cache is a 404.'));
-       }
-    }
   }
 
   /**
@@ -439,6 +334,7 @@ class ConfigurationForm extends ConfigFormBase {
    *   $this->themeManager->getActiveTheme()->getLogo()?
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+
     $config = $this->config('pwa.config');
 
     $display = $this->getDisplayValue($form_state->getValue('display'), FALSE);
@@ -480,12 +376,7 @@ class ConfigurationForm extends ConfigFormBase {
       ->set('display', $display)
       ->set('default_image', $default_image)
       ->set('start_url', $form_state->getValue('start_url'))
-      ->set('urls_to_cache', $form_state->getValue('urls_to_cache'))
-      ->set('urls_to_exclude', $form_state->getValue('urls_to_exclude'))
-      ->set('offline_page', $form_state->getValue('offline_page'))
-      ->set('cache_version', $form_state->getValue('cache_version'))
       ->set('cross_origin', $form_state->getValue('cross_origin'))
-      ->set('skip_waiting', $form_state->getValue('skip_waiting'))
       ->save();
 
     // Save image if exists
@@ -552,12 +443,52 @@ class ConfigurationForm extends ConfigFormBase {
     $this->cacheTagsInvalidator->invalidateTags(['manifestjson']);
 
     parent::submitForm($form, $form_state);
+
   }
 
   /**
-   * @return config settings.
+   *
+   * function converts an id to a display string or a string to an id
+   *
+   * @param $value
+   * @param boolean $needId
+   *
+   * @return int|string
    */
-  protected function getEditableConfigNames() {
-    return ['pwa.config'];
+  private function getDisplayValue($value, $needId) {
+    if ($needId) {
+      $id = 1;
+      switch ($value) {
+        case 'standalone':
+          $id = 2;
+          break;
+        case 'minimal-ui':
+          $id = 3;
+          break;
+        case 'browser':
+          $id = 4;
+          break;
+      }
+      return $id;
+    }
+    else {
+      $display = '';
+      switch ($value) {
+        case 1:
+          $display = 'fullscreen';
+          break;
+        case 2:
+          $display = 'standalone';
+          break;
+        case 3:
+          $display = 'minimal-ui';
+          break;
+        case 4:
+          $display = 'browser';
+          break;
+      }
+    }
+    return $display;
   }
+
 }
