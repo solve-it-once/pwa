@@ -15,6 +15,7 @@ pwa.offline_page:
   path: /offline
   defaults:
     _controller: '\Drupal\pwa\Controller\PWAController::pwa_offline_page'
+    _title: 'Offline'
   requirements:
     _permission: 'access content'
 pwa.module_active:
