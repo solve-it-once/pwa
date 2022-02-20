@@ -225,6 +225,15 @@ class ManifestConfigurationForm extends ConfigFormBase {
       '#rows' => 1
     ];
 
+    $form['scope'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Scope')
+      '#description' => $this->t('Restricts what web pages can be viewed while the manifest is applied. If the user navigates outside the scope, it reverts to a normal web page inside a browser tab or window.'),
+      '#default_value' => $config->get('scope'),
+      '#maxlength' => 255,
+      '#size' => 60,
+    ];
+
     $form['theme_color'] = [
       "#type" => 'color',
       "#title" => $this->t('Theme color'),
@@ -376,6 +385,7 @@ class ManifestConfigurationForm extends ConfigFormBase {
       ->set('display', $display)
       ->set('default_image', $default_image)
       ->set('start_url', $form_state->getValue('start_url'))
+      ->set('scope', $form_state->getValue('scope'))
       ->set('cross_origin', $form_state->getValue('cross_origin'))
       ->save();
 
