@@ -378,8 +378,8 @@ class ManifestConfigurationForm extends ConfigFormBase {
     $scope = $form_state->getValue('scope');
     if (empty($scope)) {
       $scope = '/';
+      $form_state->setValue('scope', $scope);
     }
-    $form_state->setValue('scope', $scope);
 
     // Save new config data
     $config
