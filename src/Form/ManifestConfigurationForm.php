@@ -229,7 +229,7 @@ class ManifestConfigurationForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Scope')
       '#description' => $this->t('Restricts what web pages can be viewed while the manifest is applied. If the user navigates outside the scope, it reverts to a normal web page inside a browser tab or window.'),
-      '#default_value' => $config->get('scope'),
+      '#default_value' => $config->get('scope') ?? '/',
       '#maxlength' => 255,
       '#size' => 60,
     ];
@@ -374,6 +374,13 @@ class ManifestConfigurationForm extends ConfigFormBase {
       }
     }
 
+    // Set default scope if the field is empty.
+    $scope = $form_state->getValue('scope');
+    if (empty($scope)) {
+      $scope = '/';
+    }
+    $form_state->setValue('scope', $scope);
+
     // Save new config data
     $config
       ->set('site_name', $form_state->getValue('name'))
@@ -385,7 +392,7 @@ class ManifestConfigurationForm extends ConfigFormBase {
       ->set('display', $display)
       ->set('default_image', $default_image)
       ->set('start_url', $form_state->getValue('start_url'))
-      ->set('scope', $form_state->getValue('scope'))
+      ->set('scope', $scope)
       ->set('cross_origin', $form_state->getValue('cross_origin'))
       ->save();
 

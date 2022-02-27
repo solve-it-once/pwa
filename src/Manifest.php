@@ -131,7 +131,7 @@ class Manifest implements ManifestInterface {
     if (isset($values['start_url'])) {
       $manifest_data['start_url'] = $values['start_url'];
     }
-    $manifest_data['scope'] = $values['scope'] ?? '/';
+    $manifest_data['scope'] = $values['scope'];
 
     $this->moduleHandler->alter('pwa_manifest', $manifest_data);
     $this->themeManager->alter('pwa_manifest', $manifest_data);
