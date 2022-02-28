@@ -88,3 +88,12 @@ function pwa_update_8001(&$sandbox) {
   $cache_urls = array_diff(pwa_str_to_list($config->get('urls_to_cache')), ['/offline']);
   $config->set('urls_to_cache', implode("\r\n", $cache_urls))->save(TRUE);
 }
+
+/**
+ * Set default scope to "/".
+ */
+function pwa_update_8002() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('pwa.config');
+  $config->set('scope', '/');
+}
