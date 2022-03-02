@@ -97,4 +97,10 @@ function pwa_update_8002() {
   $config = $config_factory->getEditable('pwa.config');
   $config->set('scope', '/')
     ->save(TRUE);
+
+  // Delete the cached config so that Drupal starts using the new config. Note
+  // that invalidating this cache ID doesn't seem to do it for whatever reason,
+  // so we have to actually delete it.
+  \Drupal::cache('config')->delete('pwa.config');
+
 }
