@@ -96,5 +96,5 @@ function pwa_update_8002() {
   $config_factory = \Drupal::configFactory();
   $config = $config_factory->getEditable('pwa.config');
   $config->set('scope', '/')
-    ->save();
+    ->save(TRUE);
 }
