@@ -227,7 +227,7 @@ class ManifestConfigurationForm extends ConfigFormBase {
 
     $form['scope'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Scope')
+      '#title' => $this->t('Scope'),
       '#description' => $this->t('Restricts what web pages can be viewed while the manifest is applied. If the user navigates outside the scope, it reverts to a normal web page inside a browser tab or window.'),
       '#default_value' => $config->get('scope'),
       '#maxlength' => 255,
