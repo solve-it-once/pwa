@@ -317,7 +317,7 @@ class PWAController implements ContainerInjectionInterface {
 
     $response = new CacheableResponse($data, 200, [
       'Content-Type' => 'application/javascript',
-      'Service-Worker-Allowed' => '/',
+      'Service-Worker-Allowed' => $config->get('scope'),
     ]);
     $response->addCacheableDependency($cacheable_metadata);
 
