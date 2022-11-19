@@ -155,7 +155,7 @@ class ManifestConfigurationForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $host = $this->getRequest()->server->get('HTTP_HOST');
-    $files_path = file_create_url("public://pwa") . '/';
+    $files_path = \Drupal::service('file_url_generator')->generateAbsoluteString("public://pwa") . '/';
     if (substr($files_path, 0, 7) == 'http://') {
       $files_path = str_replace('http://', '', $files_path);
     }

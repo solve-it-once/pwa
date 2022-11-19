@@ -2,8 +2,8 @@
 
 namespace Drupal\pwa\EventSubscriber;
 
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -34,7 +34,7 @@ class ResponseSubscriber implements EventSubscriberInterface {
   /**
    * Clear serviceworker cache on user change.
    *
-   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   The event to process.
    *
    * @see pwa_user_login()

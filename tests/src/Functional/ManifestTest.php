@@ -14,7 +14,7 @@ class ManifestTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['pwa'];
+  protected static $modules = ['pwa'];
 
   /**
    * Test caching of manifest.json.
