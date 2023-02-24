@@ -76,7 +76,7 @@ function pwa_theme() {
  * Check data from input.
  */
 function pwa_str_to_list($string) {
-  $list = explode("\n", $string);
+  $list = $string ? explode("\n", $string) : [];
   $list = array_map('trim', $list);
   return array_filter($list, 'strlen');
 }
