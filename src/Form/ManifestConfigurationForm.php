@@ -362,13 +362,13 @@ class ManifestConfigurationForm extends ConfigFormBase {
 
     // Get image from theme
     if ($default_image) {
-      $theme_image = theme_get_setting('logo.path', $nameOfDefaultTheme);
+      $theme_image = theme_get_setting('logo.url', $nameOfDefaultTheme);
       if (substr($theme_image, strlen($theme_image) - 3, 3) != 'png') {
         $this->messenger()
           ->addWarning($this->t('The theme image is not a .png file, your users may not be able to add this website to the homescreen.'));
       }
       $image_size = getimagesize(getcwd() . $theme_image);
-      if ($image_size[0] == $image_size[1]) {
+      if ($image_size && ($image_size[0] != $image_size[1])) {
         $this->messenger()
           ->addWarning($this->t('The theme image is not a square, your application image maybe altered (recommended size: 512x512).'));
       }
