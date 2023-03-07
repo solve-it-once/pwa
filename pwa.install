@@ -49,8 +49,6 @@ function pwa_requirements($phase) {
  * Implements hook_install().
  */
 function pwa_install() {
-  user_role_grant_permissions(RoleInterface::ANONYMOUS_ID, ['access pwa']);
-
   // Set the site name dynamically.
   $site_name = \Drupal::config('system.site')->get('name');
   $output = [
@@ -102,5 +100,11 @@ function pwa_update_8002() {
   // that invalidating this cache ID doesn't seem to do it for whatever reason,
   // so we have to actually delete it.
   \Drupal::cache('config')->delete('pwa.config');
+}
 
+/**
+ * Remove the non-existent 'access pwa' permission from the anonymous user role.
+ */
+function pwa_update_8003() {
+  user_role_revoke_permissions(RoleInterface::ANONYMOUS_ID, ['access pwa']);
 }
