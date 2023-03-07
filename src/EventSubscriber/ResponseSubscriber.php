@@ -3,7 +3,7 @@
 namespace Drupal\pwa\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -39,7 +39,7 @@ class ResponseSubscriber implements EventSubscriberInterface {
    *
    * @see pwa_user_login()
    */
-  public function processResponse(FilterResponseEvent $event) {
+  public function processResponse(ResponseEvent $event) {
     $response = $event->getResponse();
 
     if ($event->getRequest()->get('_route') === 'user.logout') {
@@ -47,7 +47,7 @@ class ResponseSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    if (stripos($response->headers->get('Content-Type'), 'text/html') === FALSE) {
+    if (stripos($response->headers->get('Content-Type', ''), 'text/html') === FALSE) {
       return;
     }
 
