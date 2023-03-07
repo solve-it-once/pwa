@@ -59,6 +59,8 @@ function pwa_page_attachments(array &$attachments) {
   \Drupal::moduleHandler()->alter('pwa_install_path', $installPath);
 
   $attachments['#attached']['drupalSettings']['pwa']['installPath'] = $installPath;
+  $scope = $config->get('scope');
+  $attachments['#attached']['drupalSettings']['pwa']['scope'] = !empty($scope) ? $scope : NULL;
 }
 
 /**
