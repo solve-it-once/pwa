@@ -17,6 +17,11 @@ class ManifestTest extends BrowserTestBase {
   protected static $modules = ['pwa'];
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Test caching of manifest.json.
    */
   public function testCache() {
