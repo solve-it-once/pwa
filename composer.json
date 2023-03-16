@@ -1,0 +1,12 @@
+{
+    "name": "drupal/pwa",
+    "type": "drupal-module",
+    "description": "Make the website installable on mobile.",
+    "homepage": "https://drupal.org/project/pwa",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": "^7.3 || ^8.0",
+        "drupal/core": "^9.2 || ^10",
+    },
+    "require-dev": {}
+}
